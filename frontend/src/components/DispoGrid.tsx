@@ -49,7 +49,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
   return (
     <div className="dispo">
       <p className="aide">
-        Touchez un jour plusieurs fois pour choisir : <b>journée</b> → <b>matin</b> → <b>après-midi</b> → retirer.
+        Touche un jour plusieurs fois pour choisir : <b>journée</b> → <b>matin</b> → <b>après-midi</b> → retirer.
       </p>
 
       <div className="raccourcis" role="group" aria-label="Raccourcis">
@@ -128,7 +128,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
         <p className="legende">
           Sous chaque date : le nombre de volontaires déjà prévus (maximum {plafond} par jour).
           <span className="charge vide">jaune</span> on a besoin de monde
-          <span className="charge complet">plein</span> vous serez en réserve
+          <span className="charge complet">plein</span> tu seras en réserve
         </p>
       ) : null}
 

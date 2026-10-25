@@ -25,7 +25,7 @@ def limit(bucket: str, per_minute: int):
         while q and now - q[0] > 60:
             q.popleft()
         if len(q) >= per_minute:
-            raise HTTPException(429, "Trop de tentatives, réessayez dans une minute")
+            raise HTTPException(429, "Trop de tentatives, réessaie dans une minute")
         q.append(now)
 
     return dependency

@@ -137,7 +137,7 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
               />
               <span>
                 Envoyer l'invitation par e-mail
-                {!emailActif && <small> — envoi d'e-mails non activé, vous transmettrez le lien par WhatsApp</small>}
+                {!emailActif && <small> — envoi d'e-mails non activé, tu transmettras le lien par WhatsApp</small>}
               </span>
             </label>
           ) : (
@@ -157,7 +157,7 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
                 <details className="avance">
                   <summary>Définir moi-même un mot de passe</summary>
                   <label className="champ">
-                    <span>Nouveau mot de passe <small>(préférez le lien de réinitialisation)</small></span>
+                    <span>Nouveau mot de passe <small>(préfère le lien de réinitialisation)</small></span>
                     <input
                       type="text"
                       autoComplete="new-password"
@@ -257,7 +257,7 @@ function PanneauLien({ type, data, onFermer }: { type: "invitation" | "reinitial
         <p className="avertissement">E-mail non envoyé : {data.erreur_email}</p>
       ) : null}
       <p className="aide">
-        Lien personnel, utilisable une seule fois, valable jusqu'au <b>{dateHeure(data.expire_at)}</b>. Ne le partagez qu'avec {prenom}.
+        Lien personnel, utilisable une seule fois, valable jusqu'au <b>{dateHeure(data.expire_at)}</b>. Ne le partage qu'avec {prenom}.
       </p>
       <code className="lien">{data.lien}</code>
       <div className="actions">

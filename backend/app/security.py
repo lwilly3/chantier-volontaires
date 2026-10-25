@@ -43,12 +43,12 @@ def current_user(
     try:
         payload = jwt.decode(creds.credentials, settings.jwt_secret, algorithms=["HS256"])
     except jwt.PyJWTError:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expirée, reconnectez-vous")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expirée, reconnecte-toi")
     user = db.get(Utilisateur, int(payload["sub"]))
     if user is None or not user.actif or not user.password_hash:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Compte inactif")
     if payload.get("v", 0) != user.version_session:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mot de passe modifié, reconnectez-vous")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mot de passe modifié, reconnecte-toi")
     return user
 
 
@@ -74,7 +74,7 @@ def utilisateur_optionnel(
 def require_roles(*roles: str):
     def checker(user: Utilisateur = Depends(current_user)) -> Utilisateur:
         if user.role not in roles:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Accès non autorisé pour votre rôle")
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Accès non autorisé pour ton rôle")
         return user
 
     return checker

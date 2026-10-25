@@ -48,9 +48,9 @@ def get_parametres(db: Session) -> Parametres:
             assemblees=ASSEMBLEES_DEFAUT,
             inscriptions_ouvertes=True,
             message_accueil=(
-                "Merci de vous proposer pour le chantier ! Indiquez vos compétences et les jours "
-                "où vous pouvez venir. Vous pourrez modifier vos disponibilités à tout moment "
-                "grâce à votre lien personnel."
+                "Merci de te proposer pour le chantier ! Indique tes compétences et les jours "
+                "où tu peux venir. Tu pourras modifier tes disponibilités à tout moment "
+                "grâce à ton lien personnel."
             ),
             contact_whatsapp="",
         )

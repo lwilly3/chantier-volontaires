@@ -56,7 +56,7 @@ def mot_de_passe_oublie(data: OublieIn, db: Session = Depends(get_db)):
     """Réponse identique que le compte existe ou non (ne révèle pas les adresses inscrites)."""
     reponse = {"message": "Si un compte actif correspond à cette adresse, un e-mail vient d'être envoyé."}
     if not mailer.email_disponible(db):
-        raise HTTPException(503, "L'envoi d'e-mails n'est pas activé. Demandez un lien au responsable.")
+        raise HTTPException(503, "L'envoi d'e-mails n'est pas activé. Demande un lien au responsable.")
     user = _par_email(db, data.email)
     if user is None or not user.actif or not user.password_hash:
         return reponse
@@ -74,7 +74,7 @@ def mot_de_passe_oublie(data: OublieIn, db: Session = Depends(get_db)):
 def _jeton_ou_404(db: Session, token: str):
     j = jetons.trouver_valide(db, token)
     if j is None:
-        raise HTTPException(404, "Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau au responsable.")
+        raise HTTPException(404, "Ce lien a expiré ou a déjà été utilisé. Demandes-en un nouveau au responsable.")
     return j
 
 
@@ -92,7 +92,7 @@ def utiliser_jeton(token: str, data: JetonAccepter, db: Session = Depends(get_db
     if j.type == "invitation":
         email = (data.email or u.email or "").lower()
         if not email:
-            raise HTTPException(422, "Indiquez votre adresse e-mail : elle vous servira d'identifiant")
+            raise HTTPException(422, "Indique ton adresse e-mail : elle te servira d'identifiant")
         autre = _par_email(db, email)
         if autre is not None and autre.id != u.id:
             raise HTTPException(409, "Cette adresse e-mail est déjà utilisée par un autre compte")

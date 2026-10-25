@@ -40,7 +40,7 @@ export default function Moi() {
       const v = await api<VolontairePublic>(`/api/public/moi/${token}`, { method: "PUT", json: form });
       const { token: _t, ...reste } = v;
       setForm(reste);
-      setMessage("Vos modifications sont enregistrées. Merci !");
+      setMessage("Tes modifications sont enregistrées. Merci !");
     } catch (err) {
       setErreur((err as ApiError).message);
     } finally {
@@ -55,8 +55,8 @@ export default function Moi() {
   return (
     <Ecran titre={config.nom_chantier}>
       <p className="intro">
-        Bonjour <b>{form.nom.split(" ")[0]}</b>, vous pouvez mettre à jour vos informations et vos jours de présence.
-        Si vous ne pouvez plus venir un jour prévu, retirez-le ici dès que possible.
+        Bonjour <b>{form.nom.split(" ")[0]}</b>, tu peux mettre à jour tes informations et tes jours de présence.
+        Si tu ne peux plus venir un jour prévu, retire-le ici dès que possible.
       </p>
       <form onSubmit={enregistrer} className="formulaire">
         <section className="carte">

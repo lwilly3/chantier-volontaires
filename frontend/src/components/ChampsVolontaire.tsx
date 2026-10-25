@@ -58,7 +58,7 @@ export default function ChampsVolontaire({ valeur, onChange, assemblees, compete
 
       <fieldset className="champ">
         <legend>
-          Ce que vous savez faire <small>(plusieurs choix possibles)</small>
+          Ce que tu sais faire <small>(plusieurs choix possibles)</small>
         </legend>
         <div className="puces">
           {[...competences, "Autre"].map((c) => (

@@ -44,8 +44,8 @@ export default function Inscription() {
   const envoyer = async (e: FormEvent) => {
     e.preventDefault();
     setErreur("");
-    if (!form.assemblee) return setErreur("Choisissez votre assemblée.");
-    if (form.disponibilites.length === 0) return setErreur("Sélectionnez au moins un jour de disponibilité.");
+    if (!form.assemblee) return setErreur("Choisis ton assemblée.");
+    if (form.disponibilites.length === 0) return setErreur("Sélectionne au moins un jour de disponibilité.");
     setEnvoi(true);
     try {
       const v = await api<VolontairePublic>("/api/public/inscription", {
@@ -83,8 +83,8 @@ export default function Inscription() {
         <div className="carte succes">
           <h2>Merci {inscrit.nom.split(" ")[0]} !</h2>
           <p>
-            Votre inscription est enregistrée pour <b>{inscrit.disponibilites.length} jour(s)</b>. Le service volontaires
-            vous contactera sur WhatsApp avant le chantier.
+            Ton inscription est enregistrée pour <b>{inscrit.disponibilites.length} jour(s)</b>. Le service volontaires
+            te contactera sur WhatsApp avant le chantier.
           </p>
         </div>
         <LienPersonnel token={inscrit.token} nom={inscrit.nom} important />
@@ -96,7 +96,7 @@ export default function Inscription() {
     return (
       <Ecran titre={config.nom_chantier}>
         <div className="carte">
-          <p>Les inscriptions sont fermées pour le moment. Rapprochez-vous du service volontaires.</p>
+          <p>Les inscriptions sont fermées pour le moment. Rapproche-toi du service volontaires.</p>
         </div>
       </Ecran>
     );
@@ -106,19 +106,19 @@ export default function Inscription() {
     <Ecran titre={config.nom_chantier}>
       {dejaInscrit && (
         <div className="carte info">
-          Vous êtes déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
+          Tu es déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
         </div>
       )}
       {config.message_accueil && <p className="intro">{config.message_accueil}</p>}
 
       <form onSubmit={envoyer} className="formulaire">
         <section className="carte">
-          <h2><span className="etape">1</span> Vos informations</h2>
+          <h2><span className="etape">1</span> Tes informations</h2>
           <ChampsVolontaire valeur={form} onChange={setForm} assemblees={config.assemblees} competences={config.competences} />
         </section>
 
         <section className="carte">
-          <h2><span className="etape">2</span> Vos disponibilités</h2>
+          <h2><span className="etape">2</span> Tes disponibilités</h2>
           <DispoGrid
             jours={config.jours}
             valeur={form.disponibilites}
@@ -196,13 +196,13 @@ function EcranCode({ titre, dejaInscrit, onValide }: { titre: string; dejaInscri
     <Ecran titre={titre}>
       {dejaInscrit && (
         <div className="carte info">
-          Vous êtes déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
+          Tu es déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
         </div>
       )}
       <form className="carte formulaire connexion code-acces" onSubmit={valider}>
         <h2>Code d'accès</h2>
         <p className="aide">
-          Saisissez le code qui vous a été communiqué par le service volontaires ou par un frère de votre assemblée.
+          Saisis le code qui t'a été communiqué par le service volontaires ou par un frère de ton assemblée.
         </p>
         <label className="champ">
           <span>Code</span>

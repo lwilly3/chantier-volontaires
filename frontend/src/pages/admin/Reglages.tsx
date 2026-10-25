@@ -134,7 +134,7 @@ function MotDePasse() {
       connecter(s); // nouvelle session ; les autres appareils sont déconnectés
       setAncien("");
       setNouveau("");
-      setEtat({ erreur: "", ok: "Mot de passe modifié. Vos autres appareils ont été déconnectés." });
+      setEtat({ erreur: "", ok: "Mot de passe modifié. Tes autres appareils ont été déconnectés." });
     } catch (err) {
       setEtat({ erreur: (err as ApiError).message, ok: "" });
     }

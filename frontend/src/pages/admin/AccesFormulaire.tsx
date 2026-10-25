@@ -31,10 +31,10 @@ export default function AccesFormulaire() {
   const modifie = actif !== enregistre.actif || code.trim() !== enregistre.code;
   const lienSite = window.location.origin;
   const message =
-    "Bonjour ! Pour vous inscrire comme volontaire au chantier de rénovation de notre Salle du Royaume " +
-    `(du lundi au samedi), ouvrez ce lien : ${lienSite}\n` +
+    "Bonjour ! Pour t'inscrire comme volontaire au chantier de rénovation de notre Salle du Royaume " +
+    `(du lundi au samedi), ouvre ce lien : ${lienSite}\n` +
     `Code d'accès : *${enregistre.code}*\n` +
-    "Vous pourrez ensuite indiquer vos compétences et les jours où vous pouvez venir.";
+    "Tu pourras ensuite indiquer tes compétences et les jours où tu peux venir.";
 
   const enregistrer = async (e: FormEvent) => {
     e.preventDefault();

@@ -48,7 +48,7 @@ export default function Connexion() {
       <form className="carte formulaire connexion" onSubmit={envoyer}>
         {modeOubli && <h2>Mot de passe oublié</h2>}
         {modeOubli && !messageOubli && (
-          <p className="aide">Indiquez l'e-mail de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+          <p className="aide">Indique l'e-mail de ton compte : tu recevras un lien pour choisir un nouveau mot de passe.</p>
         )}
         {messageOubli ? (
           <p className="ok">{messageOubli}</p>
@@ -86,7 +86,7 @@ export default function Connexion() {
               Mot de passe oublié ?
             </button>
           ) : (
-            <small>Mot de passe oublié ? Demandez un lien de réinitialisation au responsable du service.</small>
+            <small>Mot de passe oublié ? Demande un lien de réinitialisation au responsable du service.</small>
           )}
         </p>
       </form>

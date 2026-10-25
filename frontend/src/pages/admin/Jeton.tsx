@@ -72,15 +72,15 @@ export default function Jeton() {
         <p className="aide">
           {invitation ? (
             <>
-              Vous êtes invité à rejoindre l'espace équipe du service volontaires avec le rôle{" "}
-              <b>{LIBELLE_ROLE[info.role]}</b>. Choisissez votre mot de passe pour activer votre compte.
+              Tu es invité à rejoindre l'espace équipe du service volontaires avec le rôle{" "}
+              <b>{LIBELLE_ROLE[info.role]}</b>. Choisis ton mot de passe pour activer ton compte.
             </>
           ) : (
-            <>Choisissez un nouveau mot de passe pour le compte de {info.nom}.</>
+            <>Choisis un nouveau mot de passe pour le compte de {info.nom}.</>
           )}
         </p>
         <label className="champ">
-          <span>E-mail {invitation && <small>(votre identifiant de connexion)</small>}</span>
+          <span>E-mail {invitation && <small>(ton identifiant de connexion)</small>}</span>
           <input
             type="email"
             autoComplete="username"
@@ -95,7 +95,7 @@ export default function Jeton() {
           <input type="password" autoComplete="new-password" minLength={8} required value={mdp} onChange={(e) => setMdp(e.target.value)} />
         </label>
         <label className="champ">
-          <span>Confirmez le mot de passe</span>
+          <span>Confirme le mot de passe</span>
           <input type="password" autoComplete="new-password" minLength={8} required value={mdp2} onChange={(e) => setMdp2(e.target.value)} />
         </label>
         {erreur && <p className="alerte">{erreur}</p>}

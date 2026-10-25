@@ -55,7 +55,7 @@ def verifier_code(data: AccesIn, db: Session = Depends(get_db)):
     """Vérifie le code d'accès (10 essais par minute et par adresse IP)."""
     p = get_parametres(db)
     if p.code_acces_actif and not code_valide(p, data.code):
-        raise HTTPException(403, "Code incorrect. Vérifiez-le auprès du service volontaires.")
+        raise HTTPException(403, "Code incorrect. Vérifie-le auprès du service volontaires.")
 
 
 @router.get("/config")
@@ -102,8 +102,8 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
     if db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
         raise HTTPException(
             409,
-            "Ce numéro est déjà inscrit. Utilisez votre lien personnel pour modifier vos "
-            "disponibilités, ou demandez-le à un adjoint du service volontaires.",
+            "Ce numéro est déjà inscrit. Utilise ton lien personnel pour modifier tes "
+            "disponibilités, ou demande-le à un adjoint du service volontaires.",
         )
     v = Volontaire(
         nom=data.nom,
@@ -135,7 +135,7 @@ def _recruteur(db: Session, code: str | None) -> Utilisateur | None:
 def _par_token(db: Session, token: str) -> Volontaire:
     v = charger_volontaire(db, token=token)
     if v is None or not v.actif:
-        raise HTTPException(404, "Lien invalide ou expiré. Contactez le service volontaires.")
+        raise HTTPException(404, "Lien invalide ou expiré. Contacte le service volontaires.")
     return v
 
 

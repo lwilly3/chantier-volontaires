@@ -318,7 +318,7 @@ def _lien_et_email(db: Session, u: Utilisateur, type_: str, par: Utilisateur, en
     envoye, erreur = False, None
     if envoyer_email and u.email:
         if not mailer.email_disponible(db):
-            erreur = "L'envoi d'e-mails n'est pas activé (Réglages → E-mails) : transmettez le lien par WhatsApp."
+            erreur = "L'envoi d'e-mails n'est pas activé (Réglages → E-mails) : transmets le lien par WhatsApp."
         else:
             if type_ == "invitation":
                 sujet, texte, html = mailer.email_invitation(
@@ -383,7 +383,7 @@ def renvoyer_invitation(uid: int, envoyer_email: bool = True, db: Session = Depe
                         moi: Utilisateur = Depends(responsable)):
     u = _get_user(db, uid)
     if u.statut != "invite":
-        raise HTTPException(400, "Ce compte est déjà activé : utilisez plutôt un lien de réinitialisation")
+        raise HTTPException(400, "Ce compte est déjà activé : utilise plutôt un lien de réinitialisation")
     return _lien_et_email(db, u, "invitation", moi, envoyer_email)
 
 
@@ -392,9 +392,9 @@ def lien_reinitialisation(uid: int, envoyer_email: bool = True, db: Session = De
                           moi: Utilisateur = Depends(responsable)):
     u = _get_user(db, uid)
     if u.statut == "invite":
-        raise HTTPException(400, "Ce compte n'est pas encore activé : renvoyez plutôt l'invitation")
+        raise HTTPException(400, "Ce compte n'est pas encore activé : renvoie plutôt l'invitation")
     if not u.actif:
-        raise HTTPException(400, "Réactivez d'abord ce compte")
+        raise HTTPException(400, "Réactive d'abord ce compte")
     return _lien_et_email(db, u, "reinitialisation", moi, envoyer_email)
 
 
@@ -416,7 +416,7 @@ def modifier_utilisateur(uid: int, data: UtilisateurIn, db: Session = Depends(ge
                          moi: Utilisateur = Depends(responsable)):
     u = _get_user(db, uid)
     if u.id == moi.id and (data.role != "responsable" or not data.actif):
-        raise HTTPException(400, "Vous ne pouvez pas retirer vos propres droits de responsable")
+        raise HTTPException(400, "Tu ne peux pas retirer tes propres droits de responsable")
     if u.statut != "invite" and not data.email:
         raise HTTPException(422, "L'e-mail est obligatoire pour un compte activé")
     _email_libre(db, data.email, sauf_id=uid)
@@ -435,7 +435,7 @@ def modifier_utilisateur(uid: int, data: UtilisateurIn, db: Session = Depends(ge
 def supprimer_utilisateur(uid: int, db: Session = Depends(get_db), moi: Utilisateur = Depends(responsable)):
     u = _get_user(db, uid)
     if u.statut != "invite":
-        raise HTTPException(400, "Seule une invitation non acceptée peut être supprimée ; désactivez plutôt le compte")
+        raise HTTPException(400, "Seule une invitation non acceptée peut être supprimée ; désactive plutôt le compte")
     journaliser(db, moi.nom, "invitation_annulee", None, u.nom)
     db.delete(u)
     db.commit()

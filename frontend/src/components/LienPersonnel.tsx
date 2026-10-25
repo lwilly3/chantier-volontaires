@@ -12,15 +12,15 @@ export default function LienPersonnel({ token, nom, telephone, important }: Prop
   const [copie, setCopie] = useState(false);
   const lien = lienPersonnel(token);
   const texte = telephone
-    ? `Bonjour ${nom.split(" ")[0]}, voici votre lien personnel pour le chantier de la Salle du Royaume. Il permet de voir et modifier vos disponibilités : ${lien}`
+    ? `Bonjour ${nom.split(" ")[0]}, voici ton lien personnel pour le chantier de la Salle du Royaume. Il te permet de voir et modifier tes disponibilités : ${lien}`
     : `Mon lien personnel pour le chantier de la Salle du Royaume (modifier mes disponibilités) : ${lien}`;
 
   return (
     <div className={`carte lien-perso ${important ? "important" : ""}`}>
-      <h3>{telephone ? "Lien personnel du volontaire" : "Votre lien personnel"}</h3>
+      <h3>{telephone ? "Lien personnel du volontaire" : "Ton lien personnel"}</h3>
       {important && (
         <p>
-          <b>Gardez ce lien.</b> Il vous permet de modifier vos disponibilités à tout moment. Envoyez-le vous sur
+          <b>Garde ce lien.</b> Il te permet de modifier tes disponibilités à tout moment. Envoie-le-toi sur
           WhatsApp pour le retrouver facilement.
         </p>
       )}

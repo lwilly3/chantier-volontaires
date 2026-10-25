@@ -24,9 +24,9 @@ const PREREGLAGES: Record<Fournisseur, Prereglage> = {
     libelleMotDePasse: "Clé SMTP",
     aide: (
       <>
-        Créez un compte sur brevo.com, puis <b>Paramètres → SMTP & API → Générer une clé SMTP</b>. Ajoutez et
-        authentifiez le domaine <b>sallekambo.org</b> dans <b>Expéditeurs, domaines et IP dédiées</b> : Brevo
-        vous donne les enregistrements DNS à copier dans Cloudflare.
+        Crée un compte sur brevo.com, puis <b>Paramètres → SMTP & API → Générer une clé SMTP</b>. Ajoute et
+        authentifie le domaine <b>sallekambo.org</b> dans <b>Expéditeurs, domaines et IP dédiées</b> : Brevo
+        te donne les enregistrements DNS à copier dans Cloudflare.
       </>
     ),
   },
@@ -40,8 +40,8 @@ const PREREGLAGES: Record<Fournisseur, Prereglage> = {
     libelleMotDePasse: "Clé API (commence par re_)",
     aide: (
       <>
-        Créez un compte sur resend.com, ajoutez le domaine <b>sallekambo.org</b> dans <b>Domains</b> (Resend peut
-        configurer Cloudflare automatiquement), puis créez une clé dans <b>API Keys</b> avec l'accès « Sending ».
+        Crée un compte sur resend.com, ajoute le domaine <b>sallekambo.org</b> dans <b>Domains</b> (Resend peut
+        configurer Cloudflare automatiquement), puis crée une clé dans <b>API Keys</b> avec l'accès « Sending ».
       </>
     ),
   },
@@ -54,9 +54,9 @@ const PREREGLAGES: Record<Fournisseur, Prereglage> = {
     libelleMotDePasse: "Mot de passe d'application (16 lettres)",
     aide: (
       <>
-        Activez la validation en deux étapes sur le compte Google, puis créez un <b>mot de passe d'application</b>{" "}
+        Active la validation en deux étapes sur le compte Google, puis crée un <b>mot de passe d'application</b>{" "}
         (myaccount.google.com → Sécurité). L'adresse d'expéditeur doit être cette même adresse Gmail. Solution de
-        dépannage : préférez Brevo ou Resend avec votre domaine.
+        dépannage : préfère Brevo ou Resend avec ton domaine.
       </>
     ),
   },
@@ -67,7 +67,7 @@ const PREREGLAGES: Record<Fournisseur, Prereglage> = {
     securite: "starttls",
     libelleUtilisateur: "Identifiant SMTP",
     libelleMotDePasse: "Mot de passe SMTP",
-    aide: <>Renseignez les paramètres SMTP fournis par votre hébergeur de messagerie.</>,
+    aide: <>Renseigne les paramètres SMTP fournis par ton hébergeur de messagerie.</>,
   },
 };
 
@@ -109,7 +109,7 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
       });
       onChange(c);
       setF({ ...c, mot_de_passe: "" });
-      setEtat({ erreur: "", ok: c.actif ? "Réglages enregistrés. Envoyez un e-mail de test pour vérifier." : "Réglages enregistrés (envoi désactivé)." });
+      setEtat({ erreur: "", ok: c.actif ? "Réglages enregistrés. Envoie un e-mail de test pour vérifier." : "Réglages enregistrés (envoi désactivé)." });
     } catch (err) {
       setEtat({ erreur: (err as ApiError).message, ok: "" });
     } finally {
@@ -122,7 +122,7 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
     setOccupe(true);
     try {
       const r = await api<{ message: string }>("/api/admin/email/test", { method: "POST", json: { destinataire } });
-      setTest({ erreur: "", ok: `${r.message}. Vérifiez la boîte de réception (et les spams).` });
+      setTest({ erreur: "", ok: `${r.message}. Vérifie la boîte de réception (et les spams).` });
       onChange(await api<ConfigEmail>("/api/admin/email"));
     } catch (err) {
       setTest({ erreur: (err as ApiError).message, ok: "" });
@@ -220,15 +220,15 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
         {config.dernier_test_ok_at ? (
           <p className="aide">Dernier test réussi le {new Date(config.dernier_test_ok_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}.</p>
         ) : (
-          <p className="aide">Enregistrez d'abord les réglages, puis envoyez-vous un e-mail de test.</p>
+          <p className="aide">Enregistre d'abord les réglages, puis envoie-toi un e-mail de test.</p>
         )}
         <div className="ligne-test">
-          <input type="email" value={destinataire} onChange={(e) => setDestinataire(e.target.value)} placeholder="votre@adresse.com" />
+          <input type="email" value={destinataire} onChange={(e) => setDestinataire(e.target.value)} placeholder="ton@adresse.com" />
           <button type="button" className="bouton" disabled={occupe || modifie || !destinataire || !config.hote} onClick={tester}>
             {occupe ? "Envoi…" : "Envoyer un test"}
           </button>
         </div>
-        {modifie && <p className="aide">Enregistrez vos modifications avant de tester.</p>}
+        {modifie && <p className="aide">Enregistre tes modifications avant de tester.</p>}
         {test.erreur && <p className="alerte">{test.erreur}</p>}
         {test.ok && <p className="ok">{test.ok}</p>}
       </div>

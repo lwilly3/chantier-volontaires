@@ -50,7 +50,7 @@ export default function FicheVolontaire() {
     e.preventDefault();
     setErreur("");
     setMessage("");
-    if (!form.assemblee) return setErreur("Choisissez l'assemblée.");
+    if (!form.assemblee) return setErreur("Choisis l'assemblée.");
     setEnvoi(true);
     try {
       if (nouveau) {
@@ -71,7 +71,7 @@ export default function FicheVolontaire() {
   const nouveauLien = async () => {
     if (!confirm("L'ancien lien ne fonctionnera plus. Générer un nouveau lien ?")) return;
     charger(await api<VolontaireAdmin>(`/api/admin/volontaires/${id}/nouveau-lien`, { method: "POST" }));
-    setMessage("Nouveau lien généré. Envoyez-le au volontaire.");
+    setMessage("Nouveau lien généré. Envoie-le au volontaire.");
   };
 
   const supprimer = async () => {

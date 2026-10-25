@@ -39,7 +39,7 @@ function messageErreur(status: number, corps: unknown): string {
     const champ = detail[0].loc?.slice(-1)[0];
     return champ ? `Champ « ${champ} » invalide` : "Données invalides";
   }
-  if (status === 0) return "Pas de connexion au serveur. Vérifiez votre réseau.";
+  if (status === 0) return "Pas de connexion au serveur. Vérifie ton réseau.";
   return `Erreur ${status}`;
 }
 

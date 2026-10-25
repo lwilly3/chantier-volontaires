@@ -4,7 +4,7 @@ import { api } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
 import type { MonRecrutement as TMonRecrutement, Parametres } from "../../lib/types";
 
-/** Lien d'inscription personnel : les volontaires inscrits par ce lien sont rattachés à vous. */
+/** Lien d'inscription personnel : les volontaires inscrits par ce lien te sont rattachés. */
 export default function MonRecrutement() {
   const [data, setData] = useState<TMonRecrutement | null>(null);
   const [copie, setCopie] = useState(false);
@@ -32,9 +32,9 @@ export default function MonRecrutement() {
         </Link>
       </div>
       <p className="aide">
-        Partagez ce lien aux frères et sœurs que vous encouragez à participer : leurs inscriptions vous seront
-        rattachées, et vous les retrouverez avec le filtre « Mes recrues ». Les volontaires que vous saisissez
-        vous-même comptent aussi.
+        Partage ce lien aux frères et sœurs que tu encourages à participer : leurs inscriptions te seront
+        rattachées, et tu les retrouveras avec le filtre « Mes recrues ». Les volontaires que tu saisis
+        toi-même comptent aussi.
       </p>
       <code className="lien">{data.lien}</code>
       {code && (
