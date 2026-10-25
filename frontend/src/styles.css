@@ -510,3 +510,8 @@ a.badge { text-decoration: none; }
 .deja-inscrit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1rem; }
 .deja-inscrit p { margin: 0; }
 .lien-discret { background: none; border: none; padding: 0; font: inherit; font-size: 0.9rem; color: var(--texte-2); text-decoration: underline; cursor: pointer; width: auto; min-height: 0; }
+
+/* Lien personnel : explication */
+.usages-lien { margin: 0.4rem 0 0.6rem; padding-left: 1.2rem; display: grid; gap: 0.25rem; }
+.lien-perso .ok { margin: 0.7rem 0 0; }
+.lien-perso .aide { margin-top: 0.6rem; }

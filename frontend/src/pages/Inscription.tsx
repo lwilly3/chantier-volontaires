@@ -94,7 +94,7 @@ export default function Inscription() {
             te contactera sur WhatsApp avant le chantier.
           </p>
         </div>
-        <LienPersonnel token={inscrit.token} nom={inscrit.nom} important />
+        <LienPersonnel token={inscrit.token} nom={inscrit.nom} monNumero={inscrit.telephone} important />
       </Ecran>
     );
   }

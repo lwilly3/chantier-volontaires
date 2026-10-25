@@ -81,7 +81,7 @@ export default function Moi() {
           </button>
         </div>
       </form>
-      <LienPersonnel token={token} nom={form.nom} />
+      <LienPersonnel token={token} nom={form.nom} monNumero={form.telephone} />
     </Ecran>
   );
 }
