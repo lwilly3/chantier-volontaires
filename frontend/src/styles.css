@@ -515,3 +515,22 @@ a.badge { text-decoration: none; }
 .usages-lien { margin: 0.4rem 0 0.6rem; padding-left: 1.2rem; display: grid; gap: 0.25rem; }
 .lien-perso .ok { margin: 0.7rem 0 0; }
 .lien-perso .aide { margin-top: 0.6rem; }
+
+/* Mode d'emploi de la grille */
+.guide-grille { background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--primaire) 25%, transparent); border-radius: 12px; padding: 0.8rem 0.9rem; margin: 0 0 0.8rem; font-size: 0.92rem; }
+.guide-grille p { margin: 0.5rem 0 0.3rem; }
+.guide-titre { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.guide-cycle { list-style: none; padding: 0; margin: 0.4rem 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; }
+.guide-cycle li { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; text-align: center; font-size: 0.78rem; line-height: 1.2; }
+.mini { width: 52px; height: 40px; border-radius: 8px; border: 1px solid var(--bordure); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; }
+.mini.pris { color: #fff; border-color: transparent; }
+.mini.pris.journee { background: var(--c-journee); }
+.mini.pris.matin { background: var(--c-matin); }
+.mini.pris.apres_midi { background: var(--c-am); }
+.mini-plus { display: inline-flex; width: 1.6rem; height: 1.6rem; align-items: center; justify-content: center; border: 1px dashed var(--bordure); border-radius: 6px; font-weight: 700; color: var(--texte-2); margin-right: 0.2rem; }
+.guide-pastilles { list-style: none; padding: 0; margin: 0.3rem 0 0; display: grid; gap: 0.3rem; }
+.guide-pastilles .charge { margin: 0 0.4rem 0 0; min-width: 2.4em; }
+.guide-ferme { background: none; border: none; padding: 0.2rem 0; margin: 0 0 0.6rem; color: var(--primaire); font: inherit; font-size: 0.9rem; font-weight: 600; text-decoration: underline; cursor: pointer; width: auto; min-height: 0; }
+.retour-choix { position: fixed; left: 0; right: 0; bottom: 5.5rem; z-index: 30; display: flex; justify-content: center; pointer-events: none; padding: 0 1rem; }
+.retour-choix p { margin: 0; max-width: 420px; background: #1d2a27; color: #fff; font-size: 0.9rem; line-height: 1.35; padding: 0.6rem 0.9rem; border-radius: 12px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); animation: bulle-entree 0.15s ease-out; }
+@keyframes bulle-entree { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

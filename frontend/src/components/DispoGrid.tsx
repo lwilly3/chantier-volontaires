@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { ABREGE_CRENEAU, court, ENTETES_SEMAINE, jourSemaine, LIBELLE_CRENEAU, numeroJour, semaines, versDate } from "../lib/dates";
 import type { Creneau, Dispo, StatutJour } from "../lib/types";
 
@@ -26,13 +26,23 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
   const appliquer = (m: Map<string, Creneau>) =>
     onChange([...m.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([jour, creneau]) => ({ jour, creneau })));
 
+  const [dernier, setDernier] = useState<{ jour: string; creneau: Creneau | null; n: number } | null>(null);
+
   const basculer = (jour: string) => {
     const m = new Map(carte);
     const suivant = CYCLE[(CYCLE.indexOf(m.get(jour) ?? null) + 1) % CYCLE.length];
     if (suivant) m.set(jour, suivant);
     else m.delete(jour);
+    setDernier({ jour, creneau: suivant, n: (dernier?.n ?? 0) + 1 });
     appliquer(m);
   };
+
+  // La bulle disparaît seule après quelques secondes
+  useEffect(() => {
+    if (!dernier) return;
+    const t = setTimeout(() => setDernier(null), 4500);
+    return () => clearTimeout(t);
+  }, [dernier]);
 
   const basculerGroupe = (groupe: string[]) => {
     const m = new Map(carte);
@@ -48,9 +58,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
 
   return (
     <div className="dispo">
-      <p className="aide">
-        Touche un jour plusieurs fois pour choisir : <b>journée</b> → <b>matin</b> → <b>après-midi</b> → retirer.
-      </p>
+      <ModeEmploi avecRemplissage={Boolean(remplissage && plafond)} plafond={plafond} />
 
       <div className="raccourcis" role="group" aria-label="Raccourcis">
         {ENTETES_SEMAINE.map((nom, i) => {
@@ -124,17 +132,110 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
         })}
       </div>
 
-      {remplissage && plafond ? (
-        <p className="legende">
-          Sous chaque date : le nombre de volontaires déjà prévus (maximum {plafond} par jour).
-          <span className="charge vide">jaune</span> on a besoin de monde
-          <span className="charge complet">plein</span> tu seras en réserve
-        </p>
-      ) : null}
+      <div className="retour-choix" aria-live="polite">
+        {dernier && <p key={dernier.n}>{retourChoix(dernier.jour, dernier.creneau)}</p>}
+      </div>
 
       <p className="total-jours">
         <b>{valeur.length}</b> jour{valeur.length > 1 ? "s" : ""} sélectionné{valeur.length > 1 ? "s" : ""}
       </p>
+    </div>
+  );
+}
+
+const PROCHAIN: Record<Creneau, string> = {
+  journee: "le matin seulement",
+  matin: "l'après-midi seulement",
+  apres_midi: "retirer ce jour",
+};
+
+function retourChoix(jour: string, creneau: Creneau | null) {
+  if (!creneau) return <>{court(jour)} : retiré. Touche-le de nouveau pour le reprendre.</>;
+  const quand = creneau === "journee" ? "toute la journée" : creneau === "matin" ? "le matin seulement" : "l'après-midi seulement";
+  return (
+    <>
+      <b>{court(jour)}</b> : {quand}. Touche encore pour {PROCHAIN[creneau]}.
+    </>
+  );
+}
+
+const CLE_GUIDE = "volontaires.guideGrilleFerme";
+
+function ModeEmploi({ avecRemplissage, plafond }: { avecRemplissage: boolean; plafond?: number }) {
+  const [ouvert, setOuvert] = useState(() => {
+    try {
+      return localStorage.getItem(CLE_GUIDE) !== "1";
+    } catch {
+      return true;
+    }
+  });
+  const basculer = () => {
+    const suivant = !ouvert;
+    setOuvert(suivant);
+    try {
+      localStorage.setItem(CLE_GUIDE, suivant ? "0" : "1");
+    } catch {
+      /* ignoré */
+    }
+  };
+
+  if (!ouvert) {
+    return (
+      <button type="button" className="guide-ferme" onClick={basculer}>
+        ? Comment choisir mes jours
+      </button>
+    );
+  }
+
+  return (
+    <div className="guide-grille">
+      <div className="guide-titre">
+        <b>Comment choisir tes jours</b>
+        <button type="button" className="lien-discret" onClick={basculer}>
+          J'ai compris
+        </button>
+      </div>
+      <p>Touche un jour. Touche-le encore pour préciser :</p>
+      <ol className="guide-cycle">
+        <li>
+          <span className="mini pris journee">JOUR</span>
+          <span>1 fois : toute la journée</span>
+        </li>
+        <li>
+          <span className="mini pris matin">MATIN</span>
+          <span>2 fois : le matin</span>
+        </li>
+        <li>
+          <span className="mini pris apres_midi">A-MIDI</span>
+          <span>3 fois : l'après-midi</span>
+        </li>
+        <li>
+          <span className="mini" />
+          <span>4 fois : retiré</span>
+        </li>
+      </ol>
+      <p>
+        <span className="mini-plus">+</span> au bout d'une ligne : toute la semaine d'un coup.
+      </p>
+      {avecRemplissage && (
+        <>
+          <p>La pastille sous la date indique combien de volontaires sont déjà prévus ce jour-là (maximum {plafond}) :</p>
+          <ul className="guide-pastilles">
+            <li>
+              <span className="charge vide">0</span> personne encore : on a besoin de toi
+            </li>
+            <li>
+              <span className="charge">12</span> ça se remplit
+            </li>
+            <li>
+              <span className="charge presque">46</span> presque plein
+            </li>
+            <li>
+              <span className="charge complet">plein</span> tu seras en réserve, appelé en cas de désistement
+            </li>
+          </ul>
+        </>
+      )}
     </div>
   );
 }
