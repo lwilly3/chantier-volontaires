@@ -9,17 +9,24 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from .. import jetons, mailer
+from ..config import settings
 from ..db import get_db
-from ..models import Disponibilite, Journal, Utilisateur, Volontaire
+from ..models import Disponibilite, Journal, Utilisateur, Volontaire, now_utc
 from ..schemas import (
+    ConfigEmailIn,
+    ConfigEmailOut,
+    InvitationIn,
+    LienOut,
     ParametresIO,
+    TestEmailIn,
     UtilisateurIn,
     UtilisateurOut,
     VolontaireAdminOut,
     VolontaireIn,
     VolontaireUpdate,
 )
-from ..security import equipe, hash_password, responsable, tous_roles
+from ..security import definir_mot_de_passe, equipe, hash_password, responsable, tous_roles
 from ..services import (
     charger_volontaire,
     couverture,
@@ -252,42 +259,185 @@ def ecrire_parametres(data: ParametresIO, db: Session = Depends(get_db), user: U
 
 
 # ---------------------------------------------------------------- utilisateurs
+ROLE_LIBELLE = {"responsable": "Responsable", "adjoint": "Adjoint", "cuisine": "Cuisine", "comite": "Comité"}
+
+
+def _out(db: Session, u: Utilisateur) -> UtilisateurOut:
+    o = UtilisateurOut.model_validate(u)
+    if u.statut == "invite":
+        j = jetons.invitation_en_cours(db, u.id)
+        if j is not None:
+            o.invitation_expire_at = j.expire_at
+            o.invitation_expiree = jetons.est_expire(j)
+        else:
+            o.invitation_expiree = True
+    return o
+
+
+def _email_libre(db: Session, email: str | None, sauf_id: int | None = None) -> None:
+    if not email:
+        return
+    stmt = select(Utilisateur.id).where(func.lower(Utilisateur.email) == email.lower())
+    if sauf_id:
+        stmt = stmt.where(Utilisateur.id != sauf_id)
+    if db.scalar(stmt):
+        raise HTTPException(409, "Un compte existe déjà avec cet e-mail")
+
+
+def _get_user(db: Session, uid: int) -> Utilisateur:
+    u = db.get(Utilisateur, uid)
+    if u is None:
+        raise HTTPException(404, "Compte introuvable")
+    return u
+
+
+def _lien_et_email(db: Session, u: Utilisateur, type_: str, par: Utilisateur, envoyer_email: bool) -> LienOut:
+    token, j = jetons.creer(db, u, type_, par.nom)
+    url = jetons.lien(type_, token)
+    journaliser(db, par.nom, f"lien_{type_}", None, f"{u.nom}")
+    db.commit()
+    envoye, erreur = False, None
+    if envoyer_email and u.email:
+        if not mailer.email_disponible(db):
+            erreur = "L'envoi d'e-mails n'est pas activé (Réglages → E-mails) : transmettez le lien par WhatsApp."
+        else:
+            if type_ == "invitation":
+                sujet, texte, html = mailer.email_invitation(
+                    u.nom, ROLE_LIBELLE[u.role], url, settings.invitation_heures, par.nom
+                )
+            else:
+                sujet, texte, html = mailer.email_reinitialisation(u.nom, url, settings.reinitialisation_minutes)
+            try:
+                mailer.envoyer(mailer.get_config(db), u.email, sujet, texte, html)
+                envoye = True
+            except mailer.EmailErreur as e:
+                erreur = str(e)
+    return LienOut(utilisateur=_out(db, u), lien=url, expire_at=j.expire_at, email_envoye=envoye, erreur_email=erreur)
+
+
 @router.get("/utilisateurs", response_model=list[UtilisateurOut])
 def lister_utilisateurs(db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
-    return db.scalars(select(Utilisateur).order_by(Utilisateur.nom)).all()
+    return [_out(db, u) for u in db.scalars(select(Utilisateur).order_by(Utilisateur.nom)).all()]
+
+
+@router.post("/utilisateurs/inviter", response_model=LienOut, status_code=201)
+def inviter(data: InvitationIn, db: Session = Depends(get_db), moi: Utilisateur = Depends(responsable)):
+    _email_libre(db, data.email)
+    u = Utilisateur(nom=data.nom.strip(), email=data.email.lower() if data.email else None, role=data.role,
+                    password_hash="", actif=True)
+    db.add(u)
+    db.flush()
+    return _lien_et_email(db, u, "invitation", moi, data.envoyer_email)
+
+
+@router.post("/utilisateurs/{uid}/invitation", response_model=LienOut)
+def renvoyer_invitation(uid: int, envoyer_email: bool = True, db: Session = Depends(get_db),
+                        moi: Utilisateur = Depends(responsable)):
+    u = _get_user(db, uid)
+    if u.statut != "invite":
+        raise HTTPException(400, "Ce compte est déjà activé : utilisez plutôt un lien de réinitialisation")
+    return _lien_et_email(db, u, "invitation", moi, envoyer_email)
+
+
+@router.post("/utilisateurs/{uid}/reinitialisation", response_model=LienOut)
+def lien_reinitialisation(uid: int, envoyer_email: bool = True, db: Session = Depends(get_db),
+                          moi: Utilisateur = Depends(responsable)):
+    u = _get_user(db, uid)
+    if u.statut == "invite":
+        raise HTTPException(400, "Ce compte n'est pas encore activé : renvoyez plutôt l'invitation")
+    if not u.actif:
+        raise HTTPException(400, "Réactivez d'abord ce compte")
+    return _lien_et_email(db, u, "reinitialisation", moi, envoyer_email)
 
 
 @router.post("/utilisateurs", response_model=UtilisateurOut, status_code=201)
 def creer_utilisateur(data: UtilisateurIn, db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
-    if not data.password:
-        raise HTTPException(422, "Mot de passe requis (8 caractères minimum)")
-    if db.scalar(select(Utilisateur.id).where(func.lower(Utilisateur.email) == data.email.lower())):
-        raise HTTPException(409, "Un compte existe déjà avec cet e-mail")
-    u = Utilisateur(
-        nom=data.nom, email=data.email.lower(), role=data.role,
-        password_hash=hash_password(data.password), actif=data.actif,
-    )
+    """Création directe avec mot de passe (alternative à l'invitation)."""
+    if not data.password or not data.email:
+        raise HTTPException(422, "E-mail et mot de passe (8 caractères minimum) requis")
+    _email_libre(db, data.email)
+    u = Utilisateur(nom=data.nom, email=data.email.lower(), role=data.role,
+                    password_hash=hash_password(data.password), actif=data.actif)
     db.add(u)
     db.commit()
-    return u
+    return _out(db, u)
 
 
 @router.put("/utilisateurs/{uid}", response_model=UtilisateurOut)
-def modifier_utilisateur(
-    uid: int, data: UtilisateurIn, db: Session = Depends(get_db), moi: Utilisateur = Depends(responsable)
-):
-    u = db.get(Utilisateur, uid)
-    if u is None:
-        raise HTTPException(404, "Compte introuvable")
+def modifier_utilisateur(uid: int, data: UtilisateurIn, db: Session = Depends(get_db),
+                         moi: Utilisateur = Depends(responsable)):
+    u = _get_user(db, uid)
     if u.id == moi.id and (data.role != "responsable" or not data.actif):
         raise HTTPException(400, "Vous ne pouvez pas retirer vos propres droits de responsable")
-    autre = db.scalar(
-        select(Utilisateur.id).where(func.lower(Utilisateur.email) == data.email.lower(), Utilisateur.id != uid)
-    )
-    if autre:
-        raise HTTPException(409, "Un compte existe déjà avec cet e-mail")
-    u.nom, u.email, u.role, u.actif = data.nom, data.email.lower(), data.role, data.actif
+    if u.statut != "invite" and not data.email:
+        raise HTTPException(422, "L'e-mail est obligatoire pour un compte activé")
+    _email_libre(db, data.email, sauf_id=uid)
+    u.nom, u.role, u.actif = data.nom, data.role, data.actif
+    u.email = data.email.lower() if data.email else None
     if data.password:
-        u.password_hash = hash_password(data.password)
+        definir_mot_de_passe(u, data.password)
+        jetons.invalider_tous(db, u.id)
+    elif not data.actif:
+        u.version_session = (u.version_session or 0) + 1  # déconnexion immédiate
     db.commit()
-    return u
+    return _out(db, u)
+
+
+@router.delete("/utilisateurs/{uid}", status_code=204)
+def supprimer_utilisateur(uid: int, db: Session = Depends(get_db), moi: Utilisateur = Depends(responsable)):
+    u = _get_user(db, uid)
+    if u.statut != "invite":
+        raise HTTPException(400, "Seule une invitation non acceptée peut être supprimée ; désactivez plutôt le compte")
+    journaliser(db, moi.nom, "invitation_annulee", None, u.nom)
+    db.delete(u)
+    db.commit()
+
+
+# ---------------------------------------------------------------- e-mails
+def _config_out(c) -> ConfigEmailOut:
+    return ConfigEmailOut(
+        actif=c.actif, fournisseur=c.fournisseur, hote=c.hote, port=c.port, securite=c.securite,
+        utilisateur=c.utilisateur, mot_de_passe_defini=bool(c.mot_de_passe_chiffre),
+        expediteur_email=c.expediteur_email, expediteur_nom=c.expediteur_nom,
+        dernier_test_ok_at=c.dernier_test_ok_at, url_site=settings.front_url,
+    )
+
+
+@router.get("/email", response_model=ConfigEmailOut)
+def lire_config_email(db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
+    return _config_out(mailer.get_config(db))
+
+
+@router.put("/email", response_model=ConfigEmailOut)
+def ecrire_config_email(data: ConfigEmailIn, db: Session = Depends(get_db), moi: Utilisateur = Depends(responsable)):
+    c = mailer.get_config(db)
+    if data.actif and (not data.hote.strip() or not data.expediteur_email):
+        raise HTTPException(422, "Serveur SMTP et adresse d'expéditeur obligatoires pour activer l'envoi")
+    reglage_change = (data.hote.strip(), data.port, data.securite, data.utilisateur.strip()) != (
+        c.hote, c.port, c.securite, c.utilisateur
+    )
+    c.actif, c.fournisseur, c.hote, c.port = data.actif, data.fournisseur, data.hote.strip(), data.port
+    c.securite, c.utilisateur = data.securite, data.utilisateur.strip()
+    c.expediteur_email = (data.expediteur_email or "").lower()
+    c.expediteur_nom = data.expediteur_nom.strip() or "Service volontaires"
+    if data.mot_de_passe:
+        c.mot_de_passe_chiffre = mailer.chiffrer(data.mot_de_passe)
+        reglage_change = True
+    if reglage_change:
+        c.dernier_test_ok_at = None
+    journaliser(db, moi.nom, "config_email", None, f"{'activé' if c.actif else 'désactivé'} — {c.hote or 'non configuré'}")
+    db.commit()
+    return _config_out(c)
+
+
+@router.post("/email/test")
+def tester_email(data: TestEmailIn, db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
+    c = mailer.get_config(db)
+    sujet, texte, html = mailer.email_test(data.destinataire)
+    try:
+        mailer.envoyer(c, data.destinataire, sujet, texte, html)
+    except mailer.EmailErreur as e:
+        raise HTTPException(502, str(e))
+    c.dernier_test_ok_at = now_utc()
+    db.commit()
+    return {"ok": True, "message": f"E-mail de test envoyé à {data.destinataire}"}

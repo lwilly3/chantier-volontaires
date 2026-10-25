@@ -28,6 +28,7 @@ def create_token(user: Utilisateur) -> str:
     payload = {
         "sub": str(user.id),
         "role": user.role,
+        "v": user.version_session,
         "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_hours),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
@@ -44,9 +45,17 @@ def current_user(
     except jwt.PyJWTError:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expirée, reconnectez-vous")
     user = db.get(Utilisateur, int(payload["sub"]))
-    if user is None or not user.actif:
+    if user is None or not user.actif or not user.password_hash:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Compte inactif")
+    if payload.get("v", 0) != user.version_session:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mot de passe modifié, reconnectez-vous")
     return user
+
+
+def definir_mot_de_passe(user: Utilisateur, password: str) -> None:
+    """Change le mot de passe et déconnecte toutes les sessions existantes de ce compte."""
+    user.password_hash = hash_password(password)
+    user.version_session = (user.version_session or 0) + 1
 
 
 def require_roles(*roles: str):

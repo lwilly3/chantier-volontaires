@@ -19,6 +19,18 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 
 **Rôles** : `responsable` (tout), `adjoint` (volontaires), `cuisine` et `comite` (effectifs uniquement).
 
+**Comptes de l'équipe** (Réglages, responsable uniquement) :
+- **Invitation** : nom + rôle (+ e-mail facultatif). L'app génère un lien à usage unique valable 72 h,
+  envoyé par e-mail si l'envoi est activé, sinon transmis par WhatsApp. La personne choisit elle-même
+  son mot de passe.
+- **Lien de réinitialisation** (bouton « Lien mot de passe ») : valable 1 h, usage unique.
+- **Mot de passe oublié ?** sur la page de connexion : disponible dès que l'envoi d'e-mails est activé.
+- Tout changement de mot de passe déconnecte les autres sessions du compte.
+
+**Envoi d'e-mails** (Réglages → Envoi d'e-mails) : préréglages Brevo, Resend, Gmail ou SMTP
+personnalisé, bouton d'e-mail de test. Le mot de passe SMTP est chiffré en base avec une clé
+dérivée de `JWT_SECRET` (si vous changez `JWT_SECRET`, ressaisissez-le).
+
 **Plafond** : au-delà de 50 inscrits sur un jour, les derniers engagés sur ce jour passent
 automatiquement en **réserve** (ordre d'engagement conservé même quand on modifie ses autres jours).
 
@@ -35,7 +47,7 @@ pip install -r requirements-dev.txt
 export ADMIN_EMAIL=vous@exemple.com ADMIN_PASSWORD=motdepasse123
 alembic upgrade head          # crée dev.db (SQLite)
 uvicorn app.main:app --reload # http://localhost:8000/docs
-pytest                        # 7 tests
+pytest                        # 15 tests
 
 # Front (autre terminal)
 cd frontend

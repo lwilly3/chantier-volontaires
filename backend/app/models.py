@@ -29,11 +29,62 @@ class Utilisateur(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nom: Mapped[str] = mapped_column(String(120))
-    email: Mapped[str] = mapped_column(String(200), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(200))
+    # Peut rester vide pour une invitation : la personne le saisit en acceptant
+    email: Mapped[str | None] = mapped_column(String(200), unique=True, index=True, nullable=True)
+    # Vide tant que l'invitation n'a pas été acceptée (aucune connexion possible)
+    password_hash: Mapped[str] = mapped_column(String(200), default="")
     role: Mapped[str] = mapped_column(String(20), default="adjoint")
     actif: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Incrémentée à chaque changement de mot de passe : invalide les sessions ouvertes
+    version_session: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    @property
+    def statut(self) -> str:
+        if not self.password_hash:
+            return "invite"
+        return "actif" if self.actif else "desactive"
+
+
+TYPES_JETON = ("invitation", "reinitialisation")
+
+
+class Jeton(Base):
+    """Lien à usage unique (invitation ou réinitialisation). Seule l'empreinte est stockée."""
+
+    __tablename__ = "jetons"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    utilisateur_id: Mapped[int] = mapped_column(
+        ForeignKey("utilisateurs.id", ondelete="CASCADE"), index=True
+    )
+    type: Mapped[str] = mapped_column(String(20))
+    empreinte: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expire_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    utilise_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cree_par: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    utilisateur: Mapped[Utilisateur] = relationship()
+
+
+class ConfigEmail(Base):
+    """Une seule ligne (id = 1) : fournisseur SMTP choisi par le responsable."""
+
+    __tablename__ = "config_email"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    actif: Mapped[bool] = mapped_column(Boolean, default=False)
+    fournisseur: Mapped[str] = mapped_column(String(30), default="autre")
+    hote: Mapped[str] = mapped_column(String(200), default="")
+    port: Mapped[int] = mapped_column(Integer, default=587)
+    securite: Mapped[str] = mapped_column(String(10), default="starttls")  # starttls | ssl | aucune
+    utilisateur: Mapped[str] = mapped_column(String(200), default="")
+    mot_de_passe_chiffre: Mapped[str] = mapped_column(Text, default="")
+    expediteur_email: Mapped[str] = mapped_column(String(200), default="")
+    expediteur_nom: Mapped[str] = mapped_column(String(120), default="Service volontaires")
+    dernier_test_ok_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
 
 
 class Volontaire(Base):

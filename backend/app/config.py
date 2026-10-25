@@ -21,9 +21,17 @@ class Settings:
     rate_limit_public: int = int(os.getenv("RATE_LIMIT_PUBLIC", "20"))
     rate_limit_login: int = int(os.getenv("RATE_LIMIT_LOGIN", "10"))
     timezone: str = os.getenv("TZ_CHANTIER", "Africa/Douala")
+    # Adresse publique du site, utilisée dans les liens envoyés (invitations, réinitialisations)
+    front_url: str = os.getenv("FRONT_URL", "").rstrip("/")
+    invitation_heures: int = int(os.getenv("INVITATION_HEURES", "72"))
+    reinitialisation_minutes: int = int(os.getenv("REINITIALISATION_MINUTES", "60"))
 
 
 settings = Settings()
+
+if not settings.front_url:
+    https = [o for o in settings.cors_origins if o.startswith("https://")]
+    settings.front_url = (https or settings.cors_origins or ["http://localhost:5173"])[0].rstrip("/")
 
 if settings.database_url.startswith("postgres://"):
     # Dokploy fournit parfois l'URL au format postgres:// → driver psycopg 3

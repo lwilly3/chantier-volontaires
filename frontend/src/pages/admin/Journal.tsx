@@ -11,6 +11,13 @@ export const LIBELLE_ACTION: Record<string, string> = {
   suppression: "Suppression",
   nouveau_lien: "Nouveau lien",
   parametres: "Réglages modifiés",
+  lien_invitation: "Invitation envoyée",
+  lien_reinitialisation: "Lien de mot de passe créé",
+  invitation_acceptee: "Invitation acceptée",
+  invitation_annulee: "Invitation annulée",
+  mot_de_passe_reinitialise: "Mot de passe réinitialisé",
+  reinitialisation_demandee: "Mot de passe oublié (demande)",
+  config_email: "Réglages e-mail modifiés",
 };
 
 export default function Journal() {

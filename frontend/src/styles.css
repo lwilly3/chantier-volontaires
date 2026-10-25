@@ -392,3 +392,47 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
   .deux-colonnes { grid-template-columns: 1fr; }
   .journal li { grid-template-columns: 1fr; gap: 0; }
 }
+
+/* ------------------------------------------------ comptes, liens, e-mails */
+.bouton.petit { min-height: 36px; padding: 0.3rem 0.7rem; font-size: 0.88rem; }
+.lien-secondaire { text-align: center; margin: 0.9rem 0 0; }
+.lien-bouton { background: none; border: 0; color: var(--primaire); text-decoration: underline; cursor: pointer; padding: 0.3rem; }
+.comptes li { flex-wrap: wrap; }
+.compte-infos { flex: 1 1 220px; display: grid; }
+.compte-badges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.compte-actions { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-left: auto; }
+.texte-alerte { color: var(--danger) !important; font-weight: 600; }
+.panneau-lien {
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin: 0.8rem 0 1rem;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.panneau-lien h3 { margin: 0; }
+.avertissement {
+  color: #8a5300;
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  font-weight: 600;
+}
+@media (prefers-color-scheme: dark) { .avertissement { color: #f2c46b; } }
+.encart {
+  font-size: 0.88rem;
+  color: var(--texte-2);
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  margin: -0.3rem 0 1rem;
+}
+.deux-colonnes.serre { gap: 0 0.6rem; }
+.ligne-test { display: flex; gap: 0.5rem; }
+.ligne-test input { flex: 1; }
+.case-a-cocher.desactive { opacity: 0.6; }
+details.avance { margin: 0.4rem 0 0.8rem; }
+details.avance summary { cursor: pointer; color: var(--texte-2); font-size: 0.92rem; margin-bottom: 0.5rem; }
+@media (max-width: 560px) {
+  .deux-colonnes { grid-template-columns: 1fr; }
+  .compte-actions { margin-left: 0; }
+}

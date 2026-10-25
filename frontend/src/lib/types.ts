@@ -87,9 +87,43 @@ export interface VolontaireDuJour {
 export interface Utilisateur {
   id: number;
   nom: string;
-  email: string;
+  email: string | null;
   role: Role;
   actif: boolean;
+  statut: "actif" | "invite" | "desactive";
+  invitation_expire_at: string | null;
+  invitation_expiree: boolean;
+}
+
+export interface LienCompte {
+  utilisateur: Utilisateur;
+  lien: string;
+  expire_at: string;
+  email_envoye: boolean;
+  erreur_email: string | null;
+}
+
+export interface JetonInfo {
+  type: "invitation" | "reinitialisation";
+  nom: string;
+  email: string | null;
+  role: Role;
+}
+
+export type Fournisseur = "brevo" | "resend" | "gmail" | "autre";
+
+export interface ConfigEmail {
+  actif: boolean;
+  fournisseur: Fournisseur;
+  hote: string;
+  port: number;
+  securite: "starttls" | "ssl" | "aucune";
+  utilisateur: string;
+  mot_de_passe_defini: boolean;
+  expediteur_email: string;
+  expediteur_nom: string;
+  dernier_test_ok_at: string | null;
+  url_site: string;
 }
 
 export interface Parametres {

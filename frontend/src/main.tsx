@@ -7,6 +7,7 @@ import Moi from "./pages/Moi";
 import Connexion from "./pages/admin/Connexion";
 import Couverture from "./pages/admin/Couverture";
 import FicheVolontaire from "./pages/admin/FicheVolontaire";
+import Jeton from "./pages/admin/Jeton";
 import Journal from "./pages/admin/Journal";
 import Layout from "./pages/admin/Layout";
 import Reglages from "./pages/admin/Reglages";
@@ -26,6 +27,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<Inscription />} />
           <Route path="/moi/:token" element={<Moi />} />
           <Route path="/admin/connexion" element={<Connexion />} />
+          <Route path="/admin/invitation/:token" element={<Jeton />} />
+          <Route path="/admin/reinitialiser/:token" element={<Jeton />} />
           <Route path="/admin" element={<Layout />}>
             <Route index element={<Couverture />} />
             <Route path="volontaires" element={<SiEquipe><Volontaires /></SiEquipe>} />
