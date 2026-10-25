@@ -61,6 +61,10 @@ export interface JourCouverture {
   presents: number;
   reserve: number;
   mineurs: number;
+  occupation: number;
+  constate: Constate | null;
+  probables: number | null;
+  repas_probables: number | null;
   matin: number;
   apres_midi: number;
   journee: number;
@@ -69,9 +73,19 @@ export interface JourCouverture {
   par_competence: Record<string, number>;
 }
 
+export interface Constate {
+  adultes: number;
+  mineurs: number | null;
+  note: string;
+  saisi_par: string;
+}
+
 export interface Couverture {
   plafond_jour: number;
   seuil_alerte: number;
+  compter_mineurs_plafond: boolean;
+  taux_presence: number | null;
+  aujourdhui: string;
   jours: JourCouverture[];
   resume: {
     volontaires: number;
@@ -161,6 +175,22 @@ export interface Parametres {
   contact_whatsapp: string;
   code_acces_actif: boolean;
   code_acces: string;
+  compter_mineurs_plafond: boolean;
+  presences_actif: boolean;
+  presences_mdp_defini: boolean;
+}
+
+export interface Analyses {
+  nb_jours_saisis: number;
+  taux_global: number | null;
+  total_prevus: number;
+  total_presents: number;
+  par_jour_semaine: { jour_semaine: number; nom: string; nb_jours: number; prevus: number; presents: number; taux: number | null }[];
+  jours: {
+    jour: string; prevus: number; presents: number; mineurs_prevus: number; mineurs_presents: number | null;
+    taux: number | null; note: string; saisi_par: string;
+  }[];
+  prochains: { jour: string; prevus: number; mineurs_prevus: number; probables: number | null; repas_probables: number | null }[];
 }
 
 export interface EntreeJournal {

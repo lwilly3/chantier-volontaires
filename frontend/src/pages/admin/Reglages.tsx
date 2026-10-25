@@ -4,6 +4,7 @@ import { useSession } from "../../lib/session";
 import type { ConfigEmail, Parametres } from "../../lib/types";
 import AccesFormulaire from "./AccesFormulaire";
 import Comptes from "./Comptes";
+import LienPresences from "./LienPresences";
 import MonRecrutement from "./MonRecrutement";
 import ReglagesEmail from "./ReglagesEmail";
 
@@ -23,6 +24,7 @@ export default function Reglages() {
       {responsable && <AccesFormulaire />}
       {peut("responsable", "adjoint", "relais") && <MonRecrutement />}
       {responsable && <Comptes emailActif={!!email?.actif} />}
+      {responsable && <LienPresences />}
       {responsable && email && <ReglagesEmail config={email} onChange={setEmail} />}
       {responsable && <ParametresChantier />}
       <MotDePasse />
@@ -109,6 +111,17 @@ function ParametresChantier() {
       <label className="champ">
         <span>Message d'accueil du formulaire</span>
         <textarea rows={3} value={p.message_accueil} onChange={(e) => maj("message_accueil", e.target.value)} />
+      </label>
+      <label className="case-a-cocher">
+        <input
+          type="checkbox"
+          checked={p.compter_mineurs_plafond}
+          onChange={(e) => maj("compter_mineurs_plafond", e.target.checked)}
+        />
+        <span>
+          Compter les mineurs accompagnés dans le plafond par jour{" "}
+          <small>(un volontaire avec 2 mineurs occupe alors 3 places)</small>
+        </span>
       </label>
       <label className="case-a-cocher">
         <input type="checkbox" checked={p.inscriptions_ouvertes} onChange={(e) => maj("inscriptions_ouvertes", e.target.checked)} />

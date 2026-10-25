@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../../lib/api";
 import { court, ENTETES_SEMAINE, long, numeroJour, semaines, versDate, versIso } from "../../lib/dates";
 import { copier } from "../../lib/liens";
+import SaisiePresents from "../../components/SaisiePresents";
 import { useSession } from "../../lib/session";
 import type { Couverture as TCouverture, JourCouverture, VolontaireDuJour } from "../../lib/types";
 import { LIBELLE_CRENEAU } from "../../lib/dates";
@@ -19,15 +20,20 @@ export default function Couverture() {
   const [erreur, setErreur] = useState("");
   const [selection, setSelection] = useState<string | null>(null);
 
-  useEffect(() => {
+  const charger = (initial: boolean) =>
     api<TCouverture>("/api/admin/couverture")
       .then((d) => {
         setData(d);
-        const aujourdhui = versIso(new Date());
-        const prochain = d.jours.find((j) => j.jour >= aujourdhui) ?? d.jours[0];
-        setSelection(prochain?.jour ?? null);
+        if (initial) {
+          const aujourdhui = versIso(new Date());
+          const prochain = d.jours.find((j) => j.jour >= aujourdhui) ?? d.jours[0];
+          setSelection(prochain?.jour ?? null);
+        }
       })
       .catch((e: ApiError) => setErreur(e.message));
+
+  useEffect(() => {
+    charger(true);
   }, []);
 
   const parJour = useMemo(() => new Map(data?.jours.map((j) => [j.jour, j]) ?? []), [data]);
@@ -84,7 +90,10 @@ export default function Couverture() {
                     aria-label={`${court(iso)} : ${j.total} sur ${plafond}`}
                   >
                     <span className="cal-date">{premierDuMois ? court(iso).split(" ").slice(1).join(" ") : numeroJour(iso)}</span>
-                    <span className="cal-total">{j.total}</span>
+                    <span className="cal-total">
+                      {j.total}
+                      {j.constate && <span className="cal-constate" title="Présents constatés">✓{j.constate.adultes}</span>}
+                    </span>
                     <span className="jauge"><span style={{ width: `${pct}%` }} /></span>
                   </button>
                 );
@@ -94,7 +103,15 @@ export default function Couverture() {
         </div>
       </section>
 
-      {jourSel && <DetailJour jour={jourSel} plafond={plafond} />}
+      {jourSel && (
+        <DetailJour
+          jour={jourSel}
+          plafond={plafond}
+          aujourdhui={data.aujourdhui}
+          compterMineurs={data.compter_mineurs_plafond}
+          recharger={() => charger(false)}
+        />
+      )}
     </div>
   );
 }
@@ -109,9 +126,15 @@ function Tuile({ valeur, libelle, alerte, children }: { valeur: number; libelle:
   );
 }
 
-function DetailJour({ jour, plafond }: { jour: JourCouverture; plafond: number }) {
+function DetailJour({
+  jour, plafond, aujourdhui, compterMineurs, recharger,
+}: {
+  jour: JourCouverture; plafond: number; aujourdhui: string; compterMineurs: boolean; recharger: () => Promise<void>;
+}) {
   const { peut } = useSession();
   const equipe = peut("responsable", "adjoint", "relais");
+  const saisie = peut("responsable", "adjoint");
+  const passe = jour.jour <= aujourdhui;
   const [liste, setListe] = useState<VolontaireDuJour[] | null>(null);
   const [copie, setCopie] = useState(false);
 
@@ -153,11 +176,49 @@ function DetailJour({ jour, plafond }: { jour: JourCouverture; plafond: number }
 
       <div className="chiffres">
         <div><b>{jour.presents + jour.mineurs}</b><span>repas à prévoir{jour.mineurs > 0 && " (mineurs inclus)"}</span></div>
+        {jour.probables != null && (
+          <div className="probable">
+            <b>≈ {jour.probables}</b>
+            <span>présents probables{jour.repas_probables != null && ` · ≈ ${jour.repas_probables} repas`}</span>
+          </div>
+        )}
         {jour.mineurs > 0 && <div><b>+{jour.mineurs}</b><span>mineur{jour.mineurs > 1 ? "s" : ""} accompagné{jour.mineurs > 1 ? "s" : ""}</span></div>}
         <div><b>{jour.matin}</b><span>le matin</span></div>
         <div><b>{jour.apres_midi}</b><span>l'après-midi</span></div>
         {jour.reserve > 0 && <div className="alerte-tuile"><b>{jour.reserve}</b><span>en réserve</span></div>}
       </div>
+
+      {compterMineurs && jour.mineurs > 0 && (
+        <p className="aide">Les mineurs accompagnés comptent dans le plafond : {jour.occupation} / {plafond} places occupées.</p>
+      )}
+
+      {passe && (saisie || jour.constate) && (
+        <div className="bloc-presents">
+          <h3>Présents constatés</h3>
+          {saisie ? (
+            <SaisiePresents
+              prevus={jour.presents}
+              mineursPrevus={jour.mineurs}
+              constate={jour.constate}
+              onEnregistrer={async (d) => {
+                await api(`/api/admin/presences/${jour.jour}`, { method: "PUT", json: d });
+                await recharger();
+              }}
+              onEffacer={async () => {
+                await api(`/api/admin/presences/${jour.jour}`, { method: "DELETE" });
+                await recharger();
+              }}
+            />
+          ) : (
+            jour.constate && (
+              <p>
+                <b>{jour.constate.adultes}</b> présents constatés
+                {jour.constate.mineurs ? ` + ${jour.constate.mineurs} mineurs` : ""}
+              </p>
+            )
+          )}
+        </div>
+      )}
 
       {Object.keys(jour.par_assemblee).length > 0 && (
         <p className="repartition">

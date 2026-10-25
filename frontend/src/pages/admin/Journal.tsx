@@ -19,6 +19,8 @@ export const LIBELLE_ACTION: Record<string, string> = {
   reinitialisation_demandee: "Mot de passe oublié (demande)",
   config_email: "Réglages e-mail modifiés",
   code_acces: "Code d'accès modifié",
+  presences: "Présents constatés",
+  lien_presences: "Lien de saisie des présences",
 };
 
 export default function Journal() {

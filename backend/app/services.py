@@ -138,6 +138,27 @@ def statut_jour(total: int, p: Parametres) -> str:
     return "ok"
 
 
+def poids(nb_mineurs: int | None, p: Parametres) -> int:
+    """Places occupées par un volontaire : lui seul, ou lui + ses mineurs si le réglage l'exige."""
+    return 1 + ((nb_mineurs or 0) if p.compter_mineurs_plafond else 0)
+
+
+def repartir(lignes: list, p: Parametres) -> list[bool]:
+    """Pour des lignes triées par ordre d'engagement, indique qui passe en réserve.
+    Ordre strict : dès qu'un volontaire ne rentre plus sous le plafond, lui et les suivants
+    sont en réserve (les premiers engagés restent prioritaires)."""
+    occupe, plein, reserve = 0, False, []
+    for ligne in lignes:
+        w = poids(ligne.nb_mineurs, p)
+        if not plein and occupe + w <= p.plafond_jour:
+            occupe += w
+            reserve.append(False)
+        else:
+            plein = True
+            reserve.append(True)
+    return reserve
+
+
 def couverture(db: Session, p: Parametres, detail: bool = True) -> list[dict]:
     jours = jours_ouvres(p)
     if not jours:
@@ -156,22 +177,24 @@ def couverture(db: Session, p: Parametres, detail: bool = True) -> list[dict]:
 
     resultat = []
     for j in jours:
-        lignes = par_jour.get(j, [])
+        lignes = sorted(par_jour.get(j, []), key=lambda r: (r.created_at, r.id))
         creneaux = Counter(r.creneau for r in lignes)
-        total = len(lignes)
-        # même ordre de priorité que la liste du jour : seuls les volontaires hors réserve comptent
-        attendus = sorted(lignes, key=lambda r: (r.created_at, r.id))[: p.plafond_jour]
+        en_reserve = repartir(lignes, p)
+        attendus = [r for r, res in zip(lignes, en_reserve) if not res]
         mineurs = sum(r.nb_mineurs or 0 for r in attendus)
+        demande = sum(poids(r.nb_mineurs, p) for r in lignes)  # places demandées
         entree = {
             "jour": j.isoformat(),
-            "total": total,
-            "presents": min(total, p.plafond_jour),
-            "reserve": max(0, total - p.plafond_jour),
-            # mineurs à la charge des volontaires attendus (hors réserve) : repas, sécurité
+            "total": len(lignes),
+            # volontaires adultes attendus (hors réserve)
+            "presents": len(attendus),
+            "reserve": sum(en_reserve),
+            # mineurs à la charge des volontaires attendus : repas, sécurité
             "mineurs": mineurs,
+            "occupation": sum(poids(r.nb_mineurs, p) for r in attendus),
             "matin": creneaux["journee"] + creneaux["matin"],
             "apres_midi": creneaux["journee"] + creneaux["apres_midi"],
-            "statut": statut_jour(total, p),
+            "statut": statut_jour(demande, p),
         }
         if detail:
             entree["journee"] = creneaux["journee"]
@@ -191,12 +214,13 @@ def volontaires_du_jour(db: Session, p: Parametres, jour: date) -> list[dict]:
         .where(Volontaire.actif.is_(True), Disponibilite.jour == jour)
         .order_by(Disponibilite.created_at, Disponibilite.id)
     ).all()
+    en_reserve = repartir([v for _, v in rows], p)
     liste = []
-    for rang, (d, v) in enumerate(rows, start=1):
+    for rang, ((d, v), res) in enumerate(zip(rows, en_reserve), start=1):
         liste.append(
             {
                 "rang": rang,
-                "en_reserve": rang > p.plafond_jour,
+                "en_reserve": res,
                 "creneau": d.creneau,
                 "volontaire_id": v.id,
                 "nom": v.nom,

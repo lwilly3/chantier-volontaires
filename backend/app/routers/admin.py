@@ -29,7 +29,9 @@ from ..schemas import (
     VolontaireUpdate,
 )
 from ..security import definir_mot_de_passe, equipe, gestion, hash_password, responsable, tous_roles
+from .presences import analyses, presences_par_jour
 from ..services import (
+    aujourd_hui,
     charger_volontaire,
     couverture,
     get_parametres,
@@ -51,6 +53,18 @@ CRENEAU_LIBELLE = {"journee": "Journée", "matin": "Matin", "apres_midi": "Aprè
 def get_couverture(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_roles)):
     p = get_parametres(db)
     jours = couverture(db, p)
+    saisies = presences_par_jour(db)
+    ana = analyses(db, p)
+    probables = {x["jour"]: x for x in ana["prochains"]}
+    for j in jours:
+        pr = saisies.get(date.fromisoformat(j["jour"]))
+        j["constate"] = (
+            {"adultes": pr.adultes, "mineurs": pr.mineurs, "note": pr.note, "saisi_par": pr.saisi_par}
+            if pr else None
+        )
+        prob = probables.get(j["jour"])
+        j["probables"] = prob["probables"] if prob else None
+        j["repas_probables"] = prob["repas_probables"] if prob else None
     actifs = db.scalar(select(func.count()).select_from(Volontaire).where(Volontaire.actif.is_(True)))
     sans_dispo = db.scalar(
         select(func.count())
@@ -68,6 +82,9 @@ def get_couverture(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_
     return {
         "plafond_jour": p.plafond_jour,
         "seuil_alerte": p.seuil_alerte,
+        "compter_mineurs_plafond": p.compter_mineurs_plafond,
+        "taux_presence": ana["taux_global"],
+        "aujourdhui": aujourd_hui(),
         "jours": jours,
         "resume": {
             "volontaires": actifs,
@@ -260,7 +277,9 @@ def ecrire_parametres(data: ParametresIO, db: Session = Depends(get_db), user: U
     if data.seuil_alerte > data.plafond_jour:
         raise HTTPException(422, "Le seuil d'alerte doit être inférieur ou égal au plafond")
     p = get_parametres(db)
-    for champ, valeur in data.model_dump(exclude={"code_acces_actif", "code_acces"}).items():
+    for champ, valeur in data.model_dump(
+        exclude={"code_acces_actif", "code_acces", "presences_actif", "presences_mdp_defini"}
+    ).items():
         setattr(p, champ, valeur)
     journaliser(db, user.nom, "parametres", None, f"Plafond {p.plafond_jour}, du {p.date_debut} au {p.date_fin}")
     db.commit()

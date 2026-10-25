@@ -31,6 +31,17 @@ par l'API). Un volontaire peut indiquer le nombre de mineurs à sa charge qui po
 ils apparaissent dans la couverture du jour (« + N mineurs accompagnés »), sont comptés dans les repas
 à prévoir (hors volontaires en réserve), dans la liste nominative, le message WhatsApp du jour et l'export.
 
+**Présents constatés et analyses** (facultatif) : chaque jour passé, on peut indiquer le nombre
+approximatif d'adultes (et de mineurs) réellement présents, avec une note. Saisie par les responsables
+et adjoints dans la fiche du jour (Couverture), ou par les personnes désignées via le lien dédié
+`/presences`, protégé par un mot de passe défini dans Réglages → Saisie des présences (elles ne voient
+que les jours et les nombres prévus, aucun nom). L'onglet **Analyses** montre le taux de présence réel,
+le taux par jour de la semaine, un graphique prévus / présents et les **présents et repas probables**
+pour les jours à venir (taux du jour de la semaine dès 2 jours renseignés, sinon taux global).
+
+**Plafond et mineurs** : la case « Compter les mineurs accompagnés dans le plafond » (Réglages →
+Chantier) fait occuper 1 + N places à un volontaire venant avec N mineurs.
+
 **Code d'accès au formulaire** (Réglages → Accès au formulaire d'inscription, responsable) : une fois
 activé, `volontaires.sallekambo.org` demande un code avant d'afficher le formulaire, et l'API refuse
 toute inscription sans ce code (10 essais par minute et par IP). Bouton « Générer » et message
@@ -72,7 +83,7 @@ pip install -r requirements-dev.txt
 export ADMIN_EMAIL=vous@exemple.com ADMIN_PASSWORD=motdepasse123
 alembic upgrade head          # crée dev.db (SQLite)
 uvicorn app.main:app --reload # http://localhost:8000/docs
-pytest                        # 27 tests
+pytest                        # 31 tests
 
 # Front (autre terminal)
 cd frontend

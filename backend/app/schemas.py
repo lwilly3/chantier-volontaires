@@ -58,6 +58,33 @@ class AccesFormulaireIn(BaseModel):
         return self
 
 
+class PresenceIn(BaseModel):
+    adultes: int = Field(ge=0, le=1000)
+    mineurs: int | None = Field(default=None, ge=0, le=500)
+    note: str = Field(default="", max_length=500)
+
+
+class PresencesAccesIn(BaseModel):
+    actif: bool
+    mot_de_passe: str | None = Field(default=None, max_length=100)
+
+    @field_validator("mot_de_passe", mode="before")
+    @classmethod
+    def _vide_vers_none(cls, v):
+        return (v or "").strip() or None
+
+    @model_validator(mode="after")
+    def _longueur(self):
+        if self.mot_de_passe is not None and len(self.mot_de_passe) < 6:
+            raise ValueError("Le mot de passe doit faire au moins 6 caractères")
+        return self
+
+
+class PresencesConnexionIn(BaseModel):
+    mot_de_passe: str = Field(max_length=100)
+    nom: str = Field(min_length=2, max_length=60)
+
+
 class AccesIn(BaseModel):
     code: str = Field(max_length=40)
 
@@ -216,6 +243,10 @@ class ParametresIO(BaseModel):
     # Lecture seule ici : modifié via PUT /api/admin/acces-formulaire
     code_acces_actif: bool = False
     code_acces: str = ""
+    compter_mineurs_plafond: bool = False
+    # Lecture seule ici : modifié via PUT /api/admin/presences-acces
+    presences_actif: bool = False
+    presences_mdp_defini: bool = False
 
     @field_validator("jours_fermes")
     @classmethod

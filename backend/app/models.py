@@ -179,3 +179,28 @@ class Parametres(Base):
     # Code demandé avant d'accéder au formulaire d'inscription public
     code_acces_actif: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
     code_acces: Mapped[str] = mapped_column(String(40), default="", server_default="")
+    # Les mineurs accompagnés occupent-ils une place dans le plafond de sécurité ?
+    compter_mineurs_plafond: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
+    # Lien dédié /presences pour saisir le nombre de présents (mot de passe haché)
+    presences_actif: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
+    presences_mdp_hash: Mapped[str] = mapped_column(String(200), default="", server_default="")
+    # Incrémentée à chaque changement de mot de passe : déconnecte les personnes déjà connectées
+    presences_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+    @property
+    def presences_mdp_defini(self) -> bool:
+        return bool(self.presences_mdp_hash)
+
+
+class Presence(Base):
+    """Nombre approximatif de personnes effectivement présentes un jour donné (facultatif)."""
+
+    __tablename__ = "presences"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    jour: Mapped[date] = mapped_column(Date, unique=True, index=True)
+    adultes: Mapped[int] = mapped_column(Integer)
+    mineurs: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    note: Mapped[str] = mapped_column(Text, default="")
+    saisi_par: Mapped[str] = mapped_column(String(200), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)

@@ -26,6 +26,7 @@ export default function Layout() {
       <nav className="onglets">
         <NavLink to="/admin" end>Couverture</NavLink>
         {gestion && <NavLink to="/admin/volontaires">Volontaires</NavLink>}
+        <NavLink to="/admin/analyses">Analyses</NavLink>
         {equipe && <NavLink to="/admin/journal">Journal</NavLink>}
         <NavLink to="/admin/reglages">Réglages</NavLink>
       </nav>

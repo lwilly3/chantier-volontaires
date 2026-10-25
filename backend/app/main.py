@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from .config import settings
 from .db import SessionLocal
 from .models import Utilisateur
-from .routers import admin, auth, public
+from .routers import admin, auth, presences, public
 from .security import hash_password
 from .services import get_parametres
 
@@ -48,6 +48,8 @@ app.add_middleware(
 app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(presences.admin)
+app.include_router(presences.lien)
 
 
 @app.get("/api/health")

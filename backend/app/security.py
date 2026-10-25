@@ -44,6 +44,8 @@ def current_user(
         payload = jwt.decode(creds.credentials, settings.jwt_secret, algorithms=["HS256"])
     except jwt.PyJWTError:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expirée, reconnecte-toi")
+    if payload.get("scope") or "sub" not in payload:  # ex. jeton du lien de saisie des présences
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Connexion requise")
     user = db.get(Utilisateur, int(payload["sub"]))
     if user is None or not user.actif or not user.password_hash:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Compte inactif")
