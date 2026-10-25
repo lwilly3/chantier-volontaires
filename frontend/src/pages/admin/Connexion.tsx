@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { api, ApiError, type Session } from "../../lib/api";
+import { DEMO, DEMO_ROLES } from "../../lib/demo";
 import { useSession } from "../../lib/session";
 import { Ecran } from "../Inscription";
 
@@ -43,8 +44,35 @@ export default function Connexion() {
     }
   };
 
+  const entrerDemo = async (role: string) => {
+    setErreur("");
+    try {
+      const s = await api<Session>(`/api/demo/connexion/${role}`, { method: "POST" });
+      connecter(s);
+      nav("/admin", { replace: true });
+    } catch (err) {
+      setErreur((err as ApiError).message);
+    }
+  };
+
   return (
     <Ecran titre="Espace équipe">
+      {DEMO && (
+        <div className="carte entree-demo">
+          <h2>Essayer avec un rôle</h2>
+          <p className="aide">Choisis un rôle pour voir l'application comme le verra la personne concernée.</p>
+          <div className="roles-demo">
+            {DEMO_ROLES.map((r) => (
+              <button key={r.role} type="button" className="bouton" onClick={() => entrerDemo(r.role)}>
+                <b>{r.libelle}</b>
+                <small>{r.desc}</small>
+              </button>
+            ))}
+          </div>
+          {erreur && <p className="alerte">{erreur}</p>}
+        </div>
+      )}
+      {!DEMO && (
       <form className="carte formulaire connexion" onSubmit={envoyer}>
         {modeOubli && <h2>Mot de passe oublié</h2>}
         {modeOubli && !messageOubli && (
@@ -90,6 +118,7 @@ export default function Connexion() {
           )}
         </p>
       </form>
+      )}
     </Ecran>
   );
 }

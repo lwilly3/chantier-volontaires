@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -7,6 +8,7 @@ from sqlalchemy import func, select
 from .config import settings
 from .db import SessionLocal
 from .models import Utilisateur
+from . import demo
 from .routers import admin, auth, presences, public
 from .security import hash_password
 from .services import get_parametres
@@ -33,11 +35,28 @@ def bootstrap() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    bootstrap()
+    tache = None
+    if settings.demo:
+        with SessionLocal() as db:
+            demo.reinitialiser(db)
+        tache = asyncio.create_task(demo.boucle_nocturne())
+    else:
+        bootstrap()
     yield
+    if tache:
+        tache.cancel()
 
 
 app = FastAPI(title="Chantier Kambo — Service volontaires", version="1.0.0", lifespan=lifespan)
+app.include_router(public.router)
+app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(presences.admin)
+app.include_router(presences.lien)
+if settings.demo:
+    app.middleware("http")(demo.garde_fou)
+    app.include_router(demo.router)
+# Ajouté en dernier = exécuté en premier : les réponses du garde-fou de démo portent aussi les en-têtes CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -45,11 +64,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(public.router)
-app.include_router(auth.router)
-app.include_router(admin.router)
-app.include_router(presences.admin)
-app.include_router(presences.lien)
 
 
 @app.get("/api/health")

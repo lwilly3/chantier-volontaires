@@ -166,6 +166,33 @@ renvoie `index.html` pour les chemins inconnus quand il n'y a pas de `404.html`.
 
 ---
 
+### 6. Espace de démonstration (facultatif)
+
+Une copie de l'application avec des données fictives, pour présenter l'outil sans toucher aux vraies données.
+Elle tourne avec le même code, en mode `DEMO=1` : base SQLite jetable, ~90 faux volontaires sur un chantier
+« en cours », présents déjà saisis, remise à zéro au démarrage et chaque nuit vers 3 h.
+
+- **Connexion en un clic** par rôle (responsable, adjoint, homme clé, cuisine, comité) sur `/admin/connexion`.
+- Code du formulaire : `DEMO` · mot de passe du lien des présents : `demo` (rappelés à l'écran).
+- **Bloqué** : changement de mot de passe, e-mails, modification ou suppression des comptes, code d'accès,
+  mot de passe des présents. Le responsable ou un adjoint peut « Remettre à zéro » depuis le bandeau.
+
+**API (Dokploy)** : nouvelle application `volontaires-demo`, même dépôt, *Build path* `/backend`, port 8000,
+domaine `api-demo.sallekambo.org` (HTTPS Let's Encrypt). Variables :
+
+```
+DEMO=1
+DATABASE_URL=sqlite:////tmp/demo.db
+JWT_SECRET=<autre secret de 32+ caractères, différent de la prod>
+CORS_ORIGINS=https://demo.sallekambo.org
+```
+
+**DNS Cloudflare** : enregistrement `A` `api-demo` → IP du VPS, proxy désactivé (nuage gris).
+
+**Front (Cloudflare Pages)** : nouveau projet `volontaires-demo`, même dépôt, *Root* `frontend`,
+build `npm run build`, sortie `dist`. Variables : `VITE_API_URL=https://api-demo.sallekambo.org`,
+`VITE_DEMO=1`, `NODE_VERSION=22`. Domaine personnalisé : `demo.sallekambo.org`.
+
 ## Notes techniques
 
 - Le lien personnel (`/moi/<token>`) est le seul accès d'un volontaire : en cas de perte,

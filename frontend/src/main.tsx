@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import BandeauDemo from "./components/BandeauDemo";
 import { SessionProvider, useSession } from "./lib/session";
 import Inscription from "./pages/Inscription";
 import Moi from "./pages/Moi";
@@ -30,6 +31,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <SessionProvider>
       <BrowserRouter>
+        <BandeauDemo />
         <Routes>
           <Route path="/" element={<Inscription />} />
           <Route path="/moi/:token" element={<Moi />} />

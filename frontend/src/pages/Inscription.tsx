@@ -4,6 +4,7 @@ import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
+import { DEMO, DEMO_CODE_ACCES } from "../lib/demo";
 import { memoriserMonToken, monToken, oublierMonToken } from "../lib/liens";
 import type { ConfigPublique, ConfigVerrouillee, VolontaireForm, VolontairePublic } from "../lib/types";
 
@@ -251,6 +252,14 @@ function EcranCode({
             onChange={(e) => setCode(e.target.value)}
           />
         </label>
+        {DEMO && (
+          <p className="astuce-demo">
+            Démo : le code est <b>{DEMO_CODE_ACCES}</b>.{" "}
+            <button type="button" className="lien-bouton" onClick={() => setCode(DEMO_CODE_ACCES)}>
+              Le saisir pour moi
+            </button>
+          </p>
+        )}
         {erreur && <p className="alerte">{erreur}</p>}
         <button className="bouton principal large" disabled={envoi || !code.trim()}>
           {envoi ? "Vérification…" : "Accéder au formulaire"}

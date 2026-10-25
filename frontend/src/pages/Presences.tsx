@@ -4,6 +4,7 @@ import { api, ApiError } from "../lib/api";
 import { long } from "../lib/dates";
 import type { Constate } from "../lib/types";
 import { Ecran } from "./Inscription";
+import { DEMO, DEMO_MDP_PRESENCES } from "../lib/demo";
 
 const CLE = "volontaires.presences";
 
@@ -165,6 +166,21 @@ function Connexion({ titre, erreurInitiale, onConnecte }: { titre: string; erreu
           <span>Mot de passe</span>
           <input type="password" required autoComplete="current-password" value={mdp} onChange={(e) => setMdp(e.target.value)} />
         </label>
+        {DEMO && (
+          <p className="astuce-demo">
+            Démo : le mot de passe est <b>{DEMO_MDP_PRESENCES}</b>.{" "}
+            <button
+              type="button"
+              className="lien-bouton"
+              onClick={() => {
+                setMdp(DEMO_MDP_PRESENCES);
+                if (!nom) setNom("Visiteur");
+              }}
+            >
+              Le saisir pour moi
+            </button>
+          </p>
+        )}
         {erreur && <p className="alerte">{erreur}</p>}
         <button className="bouton principal large" disabled={envoi}>{envoi ? "Vérification…" : "Continuer"}</button>
       </form>

@@ -534,3 +534,14 @@ a.badge { text-decoration: none; }
 .retour-choix { position: fixed; left: 0; right: 0; bottom: 5.5rem; z-index: 30; display: flex; justify-content: center; pointer-events: none; padding: 0 1rem; }
 .retour-choix p { margin: 0; max-width: 420px; background: #1d2a27; color: #fff; font-size: 0.9rem; line-height: 1.35; padding: 0.6rem 0.9rem; border-radius: 12px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); animation: bulle-entree 0.15s ease-out; }
 @keyframes bulle-entree { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Espace de démonstration */
+.bandeau-demo { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.2rem 0.8rem; padding: 0.4rem 0.9rem; background: #f2c46b; color: #3b2a05; font-size: 0.82rem; }
+.bandeau-demo p { margin: 0; }
+.bandeau-demo nav { display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; align-items: center; }
+.bandeau-demo a, .bandeau-demo button { color: #3b2a05; font-weight: 700; text-decoration: underline; background: none; border: 0; padding: 0; font: inherit; font-weight: 700; cursor: pointer; width: auto; min-height: 0; }
+.astuce-demo { background: #fdf3dc; border: 1px dashed #d9a640; border-radius: 10px; padding: 0.5rem 0.7rem; font-size: 0.88rem; margin: 0.4rem 0 0.6rem; }
+.astuce-demo .lien-bouton { padding: 0; font-weight: 600; }
+.roles-demo { display: grid; gap: 0.5rem; }
+.roles-demo .bouton { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 0.1rem; padding: 0.7rem 0.9rem; height: auto; }
+.roles-demo small { color: var(--texte-2); font-weight: 400; }

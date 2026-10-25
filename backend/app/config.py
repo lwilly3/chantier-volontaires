@@ -25,6 +25,8 @@ class Settings:
     front_url: str = os.getenv("FRONT_URL", "").rstrip("/")
     invitation_heures: int = int(os.getenv("INVITATION_HEURES", "72"))
     reinitialisation_minutes: int = int(os.getenv("REINITIALISATION_MINUTES", "60"))
+    # Espace de démonstration : données fictives remises à zéro chaque nuit, connexion en un clic
+    demo: bool = os.getenv("DEMO", "").lower() in ("1", "true", "oui")
 
 
 settings = Settings()
