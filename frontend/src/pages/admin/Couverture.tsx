@@ -125,10 +125,13 @@ function DetailJour({ jour, plafond }: { jour: JourCouverture; plafond: number }
     const presents = liste.filter((v) => !v.en_reserve);
     const reserve = liste.filter((v) => v.en_reserve);
     const ligne = (v: VolontaireDuJour, i: number) =>
-      `${i + 1}. ${v.nom}${v.creneau !== "journee" ? ` (${LIBELLE_CRENEAU[v.creneau].toLowerCase()})` : ""}`;
+      `${i + 1}. ${v.nom}${v.creneau !== "journee" ? ` (${LIBELLE_CRENEAU[v.creneau].toLowerCase()})` : ""}` +
+      (v.nb_mineurs ? ` + ${v.nb_mineurs} mineur${v.nb_mineurs > 1 ? "s" : ""}` : "");
+    const mineursPresents = presents.reduce((n, v) => n + v.nb_mineurs, 0);
     return [
       `*Chantier Salle du Royaume — ${long(jour.jour)}*`,
-      `Volontaires attendus : ${presents.length}`,
+      `Volontaires attendus : ${presents.length}` +
+        (mineursPresents ? ` (+ ${mineursPresents} mineur${mineursPresents > 1 ? "s" : ""} accompagné${mineursPresents > 1 ? "s" : ""})` : ""),
       "",
       ...presents.map(ligne),
       ...(reserve.length ? ["", `_En réserve (${reserve.length})_ :`, ...reserve.map(ligne)] : []),
@@ -149,7 +152,8 @@ function DetailJour({ jour, plafond }: { jour: JourCouverture; plafond: number }
       </div>
 
       <div className="chiffres">
-        <div><b>{jour.presents}</b><span>repas à prévoir</span></div>
+        <div><b>{jour.presents + jour.mineurs}</b><span>repas à prévoir{jour.mineurs > 0 && " (mineurs inclus)"}</span></div>
+        {jour.mineurs > 0 && <div><b>+{jour.mineurs}</b><span>mineur{jour.mineurs > 1 ? "s" : ""} accompagné{jour.mineurs > 1 ? "s" : ""}</span></div>}
         <div><b>{jour.matin}</b><span>le matin</span></div>
         <div><b>{jour.apres_midi}</b><span>l'après-midi</span></div>
         {jour.reserve > 0 && <div className="alerte-tuile"><b>{jour.reserve}</b><span>en réserve</span></div>}
@@ -198,7 +202,8 @@ function DetailJour({ jour, plafond }: { jour: JourCouverture; plafond: number }
                   <span className="meta">
                     {v.assemblee}
                     {v.creneau !== "journee" && ` · ${LIBELLE_CRENEAU[v.creneau]}`}
-                    {v.est_mineur && " · mineur"}
+                    {v.nb_mineurs > 0 && ` · +${v.nb_mineurs} mineur${v.nb_mineurs > 1 ? "s" : ""}`}
+                    {v.est_mineur && " · inscrit mineur"}
                     {v.en_reserve && " · réserve"}
                   </span>
                   {v.competences.length > 0 && <span className="meta">{v.competences.join(", ")}</span>}

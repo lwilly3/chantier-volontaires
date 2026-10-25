@@ -449,3 +449,13 @@ a.badge { text-decoration: none; }
   padding: 0.7rem 0.9rem;
   margin: 0 0 0.8rem;
 }
+.compteur { display: inline-flex; align-items: center; gap: 0.8rem; margin-top: 0.4rem; }
+.compteur button {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--bordure); background: var(--surface);
+  font-size: 1.3rem; font-weight: 700; cursor: pointer;
+}
+.compteur span { min-width: 6.5rem; text-align: center; }
+.majorite { border-color: var(--accent); }
+.majorite .case-a-cocher { align-items: flex-start; margin: 0; }
+.majorite .case-a-cocher input { margin-top: 2px; flex-shrink: 0; }

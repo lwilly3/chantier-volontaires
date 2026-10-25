@@ -143,7 +143,8 @@ def couverture(db: Session, p: Parametres, detail: bool = True) -> list[dict]:
     if not jours:
         return []
     rows = db.execute(
-        select(Disponibilite.jour, Disponibilite.creneau, Volontaire.assemblee, Volontaire.competences)
+        select(Disponibilite.jour, Disponibilite.creneau, Volontaire.assemblee, Volontaire.competences,
+               Volontaire.nb_mineurs, Disponibilite.created_at, Disponibilite.id)
         .join(Volontaire)
         .where(Volontaire.actif.is_(True))
         .where(Disponibilite.jour >= jours[0], Disponibilite.jour <= jours[-1])
@@ -158,11 +159,16 @@ def couverture(db: Session, p: Parametres, detail: bool = True) -> list[dict]:
         lignes = par_jour.get(j, [])
         creneaux = Counter(r.creneau for r in lignes)
         total = len(lignes)
+        # même ordre de priorité que la liste du jour : seuls les volontaires hors réserve comptent
+        attendus = sorted(lignes, key=lambda r: (r.created_at, r.id))[: p.plafond_jour]
+        mineurs = sum(r.nb_mineurs or 0 for r in attendus)
         entree = {
             "jour": j.isoformat(),
             "total": total,
             "presents": min(total, p.plafond_jour),
             "reserve": max(0, total - p.plafond_jour),
+            # mineurs à la charge des volontaires attendus (hors réserve) : repas, sécurité
+            "mineurs": mineurs,
             "matin": creneaux["journee"] + creneaux["matin"],
             "apres_midi": creneaux["journee"] + creneaux["apres_midi"],
             "statut": statut_jour(total, p),
@@ -198,6 +204,7 @@ def volontaires_du_jour(db: Session, p: Parametres, jour: date) -> list[dict]:
                 "assemblee": v.assemblee,
                 "competences": v.competences or [],
                 "est_mineur": v.est_mineur,
+                "nb_mineurs": v.nb_mineurs or 0,
             }
         )
     return liste

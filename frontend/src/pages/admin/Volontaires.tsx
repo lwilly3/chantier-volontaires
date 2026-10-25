@@ -92,7 +92,8 @@ export default function Volontaires() {
                   </div>
                   <div className="meta">
                     {v.assemblee} · {v.telephone}
-                    {v.est_mineur && " · mineur"}
+                    {v.nb_mineurs > 0 && ` · +${v.nb_mineurs} mineur${v.nb_mineurs > 1 ? "s" : ""}`}
+                    {v.est_mineur && " · inscrit mineur"}
                     {v.recrute_par ? ` · recruté par ${v.recrute_par}` : v.source === "adjoint" ? " · saisi par l'équipe" : ""}
                   </div>
                   {v.competences.length > 0 && <div className="meta">{v.competences.join(", ")}</div>}

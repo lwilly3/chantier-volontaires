@@ -133,6 +133,7 @@ def creer(data: VolontaireIn, db: Session = Depends(get_db), user: Utilisateur =
         assemblee=data.assemblee,
         competences=valider_profil(p, data.assemblee, data.competences),
         est_mineur=data.est_mineur,
+        nb_mineurs=data.nb_mineurs,
         remarques=data.remarques.strip(),
         token=nouveau_token(),
         source="adjoint",
@@ -171,6 +172,7 @@ def modifier(
     v.nom, v.telephone, v.assemblee = data.nom, tel, data.assemblee
     v.competences = valider_profil(p, data.assemblee, data.competences)
     v.est_mineur, v.remarques = data.est_mineur, data.remarques.strip()
+    v.nb_mineurs = data.nb_mineurs
     if data.actif is not None and data.actif != v.actif:
         v.actif = data.actif
         journaliser(db, user.nom, "reactivation" if data.actif else "desactivation", v.id)
@@ -206,7 +208,7 @@ def export_csv(db: Session = Depends(get_db), _: Utilisateur = Depends(equipe)):
     buf = io.StringIO()
     buf.write("﻿")  # BOM : Excel ouvre correctement les accents
     w = csv.writer(buf, delimiter=";")
-    w.writerow(["Nom", "Téléphone", "Assemblée", "Compétences", "Mineur", "Actif", "Nb jours", "Jours", "Remarques"])
+    w.writerow(["Nom", "Téléphone", "Assemblée", "Compétences", "Mineurs accompagnés", "Actif", "Nb jours", "Jours", "Remarques"])
     for v in vols:
         jours = ", ".join(
             f"{d.jour.strftime('%d/%m')}" + ("" if d.creneau == "journee" else f" ({CRENEAU_LIBELLE[d.creneau]})")
@@ -214,7 +216,7 @@ def export_csv(db: Session = Depends(get_db), _: Utilisateur = Depends(equipe)):
         )
         w.writerow([
             v.nom, v.telephone, v.assemblee, ", ".join(v.competences or []),
-            "Oui" if v.est_mineur else "Non", "Oui" if v.actif else "Non",
+            v.nb_mineurs or "", "Oui" if v.actif else "Non",
             len(v.disponibilites), jours, v.remarques,
         ])
     buf.seek(0)

@@ -33,6 +33,7 @@ export default function FicheVolontaire() {
       assemblee: data.assemblee,
       competences: data.competences,
       est_mineur: data.est_mineur,
+      nb_mineurs: data.nb_mineurs,
       remarques: data.remarques,
       disponibilites: data.disponibilites,
     });

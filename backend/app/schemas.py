@@ -22,6 +22,7 @@ class VolontaireBase(BaseModel):
     assemblee: str
     competences: list[str] = Field(default_factory=list, max_length=20)
     est_mineur: bool = False
+    nb_mineurs: int = Field(default=0, ge=0, le=10)
     remarques: str = Field(default="", max_length=1000)
 
     @field_validator("nom")
@@ -37,6 +38,8 @@ class VolontaireIn(VolontaireBase):
 class InscriptionIn(VolontaireIn):
     recrutement: str | None = Field(default=None, max_length=32)  # code ?r= du lien de recrutement
     code_acces: str | None = Field(default=None, max_length=40)
+    # Les mineurs ne s'inscrivent pas eux-mêmes : le volontaire confirme être majeur
+    majeur_confirme: bool = False
 
 
 class AccesFormulaireIn(BaseModel):

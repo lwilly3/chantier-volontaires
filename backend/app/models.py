@@ -99,7 +99,10 @@ class Volontaire(Base):
     telephone: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     assemblee: Mapped[str] = mapped_column(String(80))
     competences: Mapped[list] = mapped_column(JSON, default=list)
+    # Ancien champ (les mineurs ne s'inscrivent plus eux-mêmes) : conservé pour l'historique
     est_mineur: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Mineurs à la charge du volontaire qui pourraient l'accompagner
+    nb_mineurs: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     remarques: Mapped[str] = mapped_column(Text, default="")
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     source: Mapped[str] = mapped_column(String(20), default="public")  # public | adjoint

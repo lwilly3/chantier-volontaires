@@ -98,6 +98,12 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
         raise HTTPException(403, "Les inscriptions sont fermées pour le moment")
     if not acces_autorise(db, p, code=data.code_acces):
         raise HTTPException(403, "Code d'accès manquant ou incorrect")
+    if not data.majeur_confirme:
+        raise HTTPException(
+            422,
+            "L'inscription est réservée aux personnes majeures. Un mineur peut venir accompagné de son "
+            "parent ou tuteur : c'est l'adulte qui s'inscrit et l'indique dans son inscription.",
+        )
     tel = normaliser_telephone(data.telephone)
     if db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
         raise HTTPException(
@@ -110,7 +116,8 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
         telephone=tel,
         assemblee=data.assemblee,
         competences=valider_profil(p, data.assemblee, data.competences),
-        est_mineur=data.est_mineur,
+        est_mineur=False,
+        nb_mineurs=data.nb_mineurs,
         remarques=data.remarques.strip(),
         token=nouveau_token(),
         source="public",
@@ -153,7 +160,7 @@ def modifier_profil(token: str, data: VolontaireIn, db: Session = Depends(get_db
         raise HTTPException(409, "Ce numéro est déjà utilisé par un autre volontaire")
     v.nom, v.telephone, v.assemblee = data.nom, tel, data.assemblee
     v.competences = valider_profil(p, data.assemblee, data.competences)
-    v.est_mineur, v.remarques = data.est_mineur, data.remarques.strip()
+    v.nb_mineurs, v.remarques = data.nb_mineurs, data.remarques.strip()
     resume = synchroniser_disponibilites(db, p, v, [d.model_dump() for d in data.disponibilites])
     journaliser(db, "volontaire", "modification", v.id, _resume_txt(resume))
     db.commit()

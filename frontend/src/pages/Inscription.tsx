@@ -13,6 +13,7 @@ export const VIDE: VolontaireForm = {
   assemblee: "",
   competences: [],
   est_mineur: false,
+  nb_mineurs: 0,
   remarques: "",
   disponibilites: [],
 };
@@ -20,6 +21,7 @@ export const VIDE: VolontaireForm = {
 export default function Inscription() {
   const [config, setConfig] = useState<ConfigPublique | ConfigVerrouillee | null>(null);
   const [codeAcces, setCodeAcces] = useState(lireCodeAcces);
+  const [majeur, setMajeur] = useState(false);
   const [erreurChargement, setErreurChargement] = useState("");
   const [form, setForm] = useState<VolontaireForm>(VIDE);
   const [envoi, setEnvoi] = useState(false);
@@ -46,11 +48,12 @@ export default function Inscription() {
     setErreur("");
     if (!form.assemblee) return setErreur("Choisis ton assemblée.");
     if (form.disponibilites.length === 0) return setErreur("Sélectionne au moins un jour de disponibilité.");
+    if (!majeur) return setErreur("Confirme que tu as 18 ans ou plus pour t'inscrire.");
     setEnvoi(true);
     try {
       const v = await api<VolontairePublic>("/api/public/inscription", {
         method: "POST",
-        json: { ...form, recrutement: recrutement || null, code_acces: codeAcces || null },
+        json: { ...form, recrutement: recrutement || null, code_acces: codeAcces || null, majeur_confirme: majeur },
       });
       memoriserMonToken(v.token);
       setInscrit(v);
@@ -126,6 +129,19 @@ export default function Inscription() {
             remplissage={config.remplissage}
             plafond={config.plafond_jour}
           />
+        </section>
+
+        <section className="carte majorite">
+          <label className="case-a-cocher">
+            <input type="checkbox" checked={majeur} onChange={(e) => setMajeur(e.target.checked)} />
+            <span>
+              <b>J'ai 18 ans ou plus.</b>
+              <small>
+                {" "}Les mineurs ne s'inscrivent pas eux-mêmes : ils peuvent venir accompagnés de leur parent ou tuteur,
+                qui l'indique dans son inscription.
+              </small>
+            </span>
+          </label>
         </section>
 
         <div className="barre-envoi">

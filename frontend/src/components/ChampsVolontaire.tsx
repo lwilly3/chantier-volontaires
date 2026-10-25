@@ -75,10 +75,29 @@ export default function ChampsVolontaire({ valeur, onChange, assemblees, compete
         </div>
       </fieldset>
 
-      <label className="case-a-cocher">
-        <input type="checkbox" checked={valeur.est_mineur} onChange={(e) => maj("est_mineur", e.target.checked)} />
-        <span>J'ai moins de 18 ans</span>
-      </label>
+      <fieldset className="champ">
+        <legend>Mineurs à ta charge</legend>
+        <label className="case-a-cocher">
+          <input
+            type="checkbox"
+            checked={valeur.nb_mineurs > 0}
+            onChange={(e) => maj("nb_mineurs", e.target.checked ? 1 : 0)}
+          />
+          <span>Je pourrais venir accompagné d'un ou plusieurs mineurs dont j'ai la charge</span>
+        </label>
+        {valeur.nb_mineurs > 0 && (
+          <div className="compteur" role="group" aria-label="Nombre de mineurs">
+            <button type="button" onClick={() => maj("nb_mineurs", Math.max(1, valeur.nb_mineurs - 1))} aria-label="Un de moins">−</button>
+            <span>
+              <b>{valeur.nb_mineurs}</b> mineur{valeur.nb_mineurs > 1 ? "s" : ""}
+            </span>
+            <button type="button" onClick={() => maj("nb_mineurs", Math.min(10, valeur.nb_mineurs + 1))} aria-label="Un de plus">+</button>
+          </div>
+        )}
+        {valeur.est_mineur && (
+          <p className="avertissement">Inscrit comme mineur avec l'ancien formulaire : à vérifier avec ses parents.</p>
+        )}
+      </fieldset>
 
       <label className="champ">
         <span>

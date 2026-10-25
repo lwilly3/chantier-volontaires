@@ -13,6 +13,7 @@ export interface VolontaireForm {
   assemblee: string;
   competences: string[];
   est_mineur: boolean;
+  nb_mineurs: number;
   remarques: string;
   disponibilites: Dispo[];
 }
@@ -59,6 +60,7 @@ export interface JourCouverture {
   total: number;
   presents: number;
   reserve: number;
+  mineurs: number;
   matin: number;
   apres_midi: number;
   journee: number;
@@ -93,6 +95,7 @@ export interface VolontaireDuJour {
   assemblee: string;
   competences: string[];
   est_mineur: boolean;
+  nb_mineurs: number;
 }
 
 export interface Utilisateur {

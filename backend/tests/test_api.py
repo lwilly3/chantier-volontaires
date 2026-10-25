@@ -38,6 +38,7 @@ def payload(tel="677000001", jours=None, nom="Jean Mbarga"):
         "telephone": tel,
         "assemblee": "Kambo Pariso",
         "competences": ["Maçonnerie", "Inconnue"],
+        "majeur_confirme": True,
         "disponibilites": [{"jour": j, "creneau": "journee"} for j in (jours or ["2026-11-23", "2026-11-28"])],
     }
 

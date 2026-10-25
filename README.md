@@ -26,6 +26,11 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 | `relais` (« Homme clé ») | Inscrire, modifier et désactiver des volontaires (les deux assemblées), voir les téléphones et les listes du jour — sans export, journal, suppression ni réglages |
 | `cuisine`, `comite` | Voir les effectifs par jour uniquement |
 
+**Mineurs** : seuls les adultes peuvent s'inscrire (case « J'ai 18 ans ou plus » obligatoire, contrôlée
+par l'API). Un volontaire peut indiquer le nombre de mineurs à sa charge qui pourraient l'accompagner :
+ils apparaissent dans la couverture du jour (« + N mineurs accompagnés »), sont comptés dans les repas
+à prévoir (hors volontaires en réserve), dans la liste nominative, le message WhatsApp du jour et l'export.
+
 **Code d'accès au formulaire** (Réglages → Accès au formulaire d'inscription, responsable) : une fois
 activé, `volontaires.sallekambo.org` demande un code avant d'afficher le formulaire, et l'API refuse
 toute inscription sans ce code (10 essais par minute et par IP). Bouton « Générer » et message
@@ -67,7 +72,7 @@ pip install -r requirements-dev.txt
 export ADMIN_EMAIL=vous@exemple.com ADMIN_PASSWORD=motdepasse123
 alembic upgrade head          # crée dev.db (SQLite)
 uvicorn app.main:app --reload # http://localhost:8000/docs
-pytest                        # 24 tests
+pytest                        # 27 tests
 
 # Front (autre terminal)
 cd frontend
