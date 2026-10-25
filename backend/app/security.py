@@ -58,6 +58,19 @@ def definir_mot_de_passe(user: Utilisateur, password: str) -> None:
     user.version_session = (user.version_session or 0) + 1
 
 
+def utilisateur_optionnel(
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: Session = Depends(get_db),
+) -> Utilisateur | None:
+    """Membre de l'équipe connecté, ou None (sans erreur) pour les visiteurs."""
+    if creds is None:
+        return None
+    try:
+        return current_user(creds, db)
+    except HTTPException:
+        return None
+
+
 def require_roles(*roles: str):
     def checker(user: Utilisateur = Depends(current_user)) -> Utilisateur:
         if user.role not in roles:

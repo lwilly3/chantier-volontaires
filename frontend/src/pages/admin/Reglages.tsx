@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type Session } from "../../lib/api";
 import { useSession } from "../../lib/session";
 import type { ConfigEmail, Parametres } from "../../lib/types";
+import AccesFormulaire from "./AccesFormulaire";
 import Comptes from "./Comptes";
 import MonRecrutement from "./MonRecrutement";
 import ReglagesEmail from "./ReglagesEmail";
@@ -19,6 +20,7 @@ export default function Reglages() {
 
   return (
     <div className="reglages">
+      {responsable && <AccesFormulaire />}
       {peut("responsable", "adjoint", "relais") && <MonRecrutement />}
       {responsable && <Comptes emailActif={!!email?.actif} />}
       {responsable && email && <ReglagesEmail config={email} onChange={setEmail} />}

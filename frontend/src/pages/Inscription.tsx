@@ -5,7 +5,7 @@ import DispoGrid from "../components/DispoGrid";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
 import { memoriserMonToken, monToken } from "../lib/liens";
-import type { ConfigPublique, VolontaireForm, VolontairePublic } from "../lib/types";
+import type { ConfigPublique, ConfigVerrouillee, VolontaireForm, VolontairePublic } from "../lib/types";
 
 export const VIDE: VolontaireForm = {
   nom: "",
@@ -18,7 +18,8 @@ export const VIDE: VolontaireForm = {
 };
 
 export default function Inscription() {
-  const [config, setConfig] = useState<ConfigPublique | null>(null);
+  const [config, setConfig] = useState<ConfigPublique | ConfigVerrouillee | null>(null);
+  const [codeAcces, setCodeAcces] = useState(lireCodeAcces);
   const [erreurChargement, setErreurChargement] = useState("");
   const [form, setForm] = useState<VolontaireForm>(VIDE);
   const [envoi, setEnvoi] = useState(false);
@@ -37,10 +38,16 @@ export default function Inscription() {
   }, [recrutement]);
 
   useEffect(() => {
-    api<ConfigPublique>("/api/public/config")
-      .then(setConfig)
+    const q = new URLSearchParams();
+    if (codeAcces) q.set("code", codeAcces);
+    if (recrutement) q.set("r", recrutement);
+    api<ConfigPublique | ConfigVerrouillee>(`/api/public/config?${q}`)
+      .then((c) => {
+        if (!c.acces && codeAcces) memoriserCodeAcces(""); // code changé entre-temps : on redemande
+        setConfig(c);
+      })
       .catch((e: ApiError) => setErreurChargement(e.message));
-  }, []);
+  }, [codeAcces, recrutement]);
 
   const envoyer = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,7 +58,7 @@ export default function Inscription() {
     try {
       const v = await api<VolontairePublic>("/api/public/inscription", {
         method: "POST",
-        json: { ...form, recrutement: recrutement || null },
+        json: { ...form, recrutement: recrutement || null, code_acces: codeAcces || null },
       });
       memoriserMonToken(v.token);
       setInscrit(v);
@@ -65,6 +72,18 @@ export default function Inscription() {
 
   if (erreurChargement) return <Ecran><p className="alerte">{erreurChargement}</p></Ecran>;
   if (!config) return <Ecran><p className="chargement">Chargement…</p></Ecran>;
+  if (!config.acces) {
+    return (
+      <EcranCode
+        titre={config.nom_chantier}
+        dejaInscrit={dejaInscrit}
+        onValide={(c) => {
+          memoriserCodeAcces(c);
+          setCodeAcces(c);
+        }}
+      />
+    );
+  }
 
   if (inscrit) {
     return (
@@ -156,4 +175,75 @@ function lireCodeRecrutement(depuisUrl: string | null): string {
   } catch {
     return depuisUrl ?? "";
   }
+}
+
+const CLE_CODE = "volontaires.codeAcces";
+
+function lireCodeAcces(): string {
+  try {
+    return sessionStorage.getItem(CLE_CODE) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function memoriserCodeAcces(code: string) {
+  try {
+    if (code) sessionStorage.setItem(CLE_CODE, code);
+    else sessionStorage.removeItem(CLE_CODE);
+  } catch {
+    /* ignoré */
+  }
+}
+
+function EcranCode({ titre, dejaInscrit, onValide }: { titre: string; dejaInscrit: string | null; onValide: (code: string) => void }) {
+  const [code, setCode] = useState("");
+  const [erreur, setErreur] = useState("");
+  const [envoi, setEnvoi] = useState(false);
+
+  const valider = async (e: FormEvent) => {
+    e.preventDefault();
+    setErreur("");
+    setEnvoi(true);
+    try {
+      await api("/api/public/acces", { method: "POST", json: { code } });
+      onValide(code);
+    } catch (err) {
+      setErreur((err as ApiError).message);
+    } finally {
+      setEnvoi(false);
+    }
+  };
+
+  return (
+    <Ecran titre={titre}>
+      {dejaInscrit && (
+        <div className="carte info">
+          Vous êtes déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
+        </div>
+      )}
+      <form className="carte formulaire connexion code-acces" onSubmit={valider}>
+        <h2>Code d'accès</h2>
+        <p className="aide">
+          Saisissez le code qui vous a été communiqué par le service volontaires ou par un frère de votre assemblée.
+        </p>
+        <label className="champ">
+          <span>Code</span>
+          <input
+            required
+            autoFocus
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+        </label>
+        {erreur && <p className="alerte">{erreur}</p>}
+        <button className="bouton principal large" disabled={envoi || !code.trim()}>
+          {envoi ? "Vérification…" : "Accéder au formulaire"}
+        </button>
+      </form>
+    </Ecran>
+  );
 }

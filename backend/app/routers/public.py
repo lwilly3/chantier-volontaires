@@ -1,4 +1,6 @@
 """Routes publiques : utilisées par les volontaires, sans compte."""
+import hmac
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -7,7 +9,8 @@ from ..config import settings
 from ..db import get_db
 from ..models import Utilisateur, Volontaire
 from ..ratelimit import limit
-from ..schemas import InscriptionIn, VolontaireIn, VolontairePublicOut
+from ..schemas import AccesIn, InscriptionIn, VolontaireIn, VolontairePublicOut
+from ..security import utilisateur_optionnel
 from ..services import (
     charger_volontaire,
     couverture,
@@ -24,12 +27,53 @@ router = APIRouter(prefix="/api/public", tags=["public"])
 _limite = Depends(limit("public", settings.rate_limit_public))
 
 
-@router.get("/config")
-def config(db: Session = Depends(get_db)):
-    """Tout ce qu'il faut au formulaire : jours, compétences, et remplissage de chaque jour
-    (sans aucun nom) pour orienter les volontaires vers les jours où on manque de monde."""
+def _normaliser_code(code: str | None) -> str:
+    return "".join((code or "").split()).upper()
+
+
+def code_valide(p, code: str | None) -> bool:
+    attendu = _normaliser_code(p.code_acces)
+    return bool(attendu) and hmac.compare_digest(_normaliser_code(code).encode(), attendu.encode())
+
+
+def acces_autorise(db: Session, p, code=None, recrutement=None, jeton=None, membre=None) -> bool:
+    """Le formulaire est accessible si le code n'est pas exigé, ou avec : le bon code, un lien de
+    recrutement valide, le lien personnel d'un volontaire, ou une session de l'équipe."""
+    if not p.code_acces_actif or membre is not None:
+        return True
+    if code_valide(p, code) or _recruteur(db, recrutement) is not None:
+        return True
+    if jeton:
+        v = db.scalar(select(Volontaire.id).where(Volontaire.token == jeton, Volontaire.actif.is_(True)))
+        return v is not None
+    return False
+
+
+@router.post("/acces", status_code=204, dependencies=[Depends(limit("acces", 10))])
+def verifier_code(data: AccesIn, db: Session = Depends(get_db)):
+    """Vérifie le code d'accès (10 essais par minute et par adresse IP)."""
     p = get_parametres(db)
+    if p.code_acces_actif and not code_valide(p, data.code):
+        raise HTTPException(403, "Code incorrect. Vérifiez-le auprès du service volontaires.")
+
+
+@router.get("/config")
+def config(
+    code: str | None = None,
+    r: str | None = None,
+    jeton: str | None = None,
+    db: Session = Depends(get_db),
+    membre: Utilisateur | None = Depends(utilisateur_optionnel),
+):
+    """Tout ce qu'il faut au formulaire : jours, compétences, et remplissage de chaque jour
+    (sans aucun nom) pour orienter les volontaires vers les jours où on manque de monde.
+    Si un code d'accès est exigé et absent, seul le nom du chantier est renvoyé."""
+    p = get_parametres(db)
+    if not acces_autorise(db, p, code=code, recrutement=r, jeton=jeton, membre=membre):
+        return {"nom_chantier": p.nom_chantier, "code_requis": True, "acces": False}
     return {
+        "code_requis": p.code_acces_actif,
+        "acces": True,
         "nom_chantier": p.nom_chantier,
         "date_debut": p.date_debut,
         "date_fin": p.date_fin,
@@ -52,6 +96,8 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
     p = get_parametres(db)
     if not p.inscriptions_ouvertes:
         raise HTTPException(403, "Les inscriptions sont fermées pour le moment")
+    if not acces_autorise(db, p, code=data.code_acces, recrutement=data.recrutement):
+        raise HTTPException(403, "Code d'accès manquant ou incorrect")
     tel = normaliser_telephone(data.telephone)
     if db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
         raise HTTPException(

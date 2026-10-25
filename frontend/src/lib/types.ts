@@ -31,7 +31,16 @@ export interface VolontaireAdmin extends VolontairePublic {
   updated_at: string;
 }
 
+/** Réponse quand un code d'accès est exigé et pas encore saisi. */
+export interface ConfigVerrouillee {
+  nom_chantier: string;
+  code_requis: true;
+  acces: false;
+}
+
 export interface ConfigPublique {
+  code_requis: boolean;
+  acces: true;
   nom_chantier: string;
   date_debut: string;
   date_fin: string;
@@ -147,6 +156,8 @@ export interface Parametres {
   inscriptions_ouvertes: boolean;
   message_accueil: string;
   contact_whatsapp: string;
+  code_acces_actif: boolean;
+  code_acces: string;
 }
 
 export interface EntreeJournal {

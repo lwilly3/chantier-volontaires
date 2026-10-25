@@ -15,6 +15,7 @@ from ..config import settings
 from ..db import get_db
 from ..models import Disponibilite, Journal, Utilisateur, Volontaire, now_utc
 from ..schemas import (
+    AccesFormulaireIn,
     ConfigEmailIn,
     ConfigEmailOut,
     InvitationIn,
@@ -257,9 +258,21 @@ def ecrire_parametres(data: ParametresIO, db: Session = Depends(get_db), user: U
     if data.seuil_alerte > data.plafond_jour:
         raise HTTPException(422, "Le seuil d'alerte doit être inférieur ou égal au plafond")
     p = get_parametres(db)
-    for champ, valeur in data.model_dump().items():
+    for champ, valeur in data.model_dump(exclude={"code_acces_actif", "code_acces"}).items():
         setattr(p, champ, valeur)
     journaliser(db, user.nom, "parametres", None, f"Plafond {p.plafond_jour}, du {p.date_debut} au {p.date_fin}")
+    db.commit()
+    return p
+
+
+@router.put("/acces-formulaire", response_model=ParametresIO)
+def ecrire_acces_formulaire(data: AccesFormulaireIn, db: Session = Depends(get_db), user: Utilisateur = Depends(responsable)):
+    """Active ou désactive le code demandé avant le formulaire d'inscription public."""
+    p = get_parametres(db)
+    p.code_acces_actif = data.code_acces_actif
+    if data.code_acces or not data.code_acces_actif:
+        p.code_acces = data.code_acces
+    journaliser(db, user.nom, "code_acces", None, "activé" if p.code_acces_actif else "désactivé")
     db.commit()
     return p
 

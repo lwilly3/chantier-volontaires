@@ -11,6 +11,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy import false as sa_false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -172,3 +173,6 @@ class Parametres(Base):
     inscriptions_ouvertes: Mapped[bool] = mapped_column(Boolean, default=True)
     message_accueil: Mapped[str] = mapped_column(Text, default="")
     contact_whatsapp: Mapped[str] = mapped_column(String(30), default="")
+    # Code demandé avant d'accéder au formulaire d'inscription public
+    code_acces_actif: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
+    code_acces: Mapped[str] = mapped_column(String(40), default="", server_default="")

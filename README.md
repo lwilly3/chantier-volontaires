@@ -26,6 +26,12 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 | `relais` (« Homme clé ») | Inscrire, modifier et désactiver des volontaires (les deux assemblées), voir les téléphones et les listes du jour — sans export, journal, suppression ni réglages |
 | `cuisine`, `comite` | Voir les effectifs par jour uniquement |
 
+**Code d'accès au formulaire** (Réglages → Accès au formulaire d'inscription, responsable) : une fois
+activé, `volontaires.sallekambo.org` demande un code avant d'afficher le formulaire, et l'API refuse
+toute inscription sans ce code (10 essais par minute et par IP). Bouton « Générer » et message
+WhatsApp « lien + code » prêt à envoyer. Restent accessibles sans code : les liens personnels des
+volontaires déjà inscrits (`/moi/…`) et les liens de recrutement de l'équipe (`/?r=…`).
+
 **Lien de recrutement** : chaque membre de l'équipe (responsable, adjoint, homme clé) a un lien
 personnel `/?r=CODE` (Réglages → Mon lien de recrutement). Les volontaires inscrits par ce lien, et
 ceux saisis directement par un homme clé, lui sont rattachés : filtre « Mes recrues », compteur dans
@@ -59,7 +65,7 @@ pip install -r requirements-dev.txt
 export ADMIN_EMAIL=vous@exemple.com ADMIN_PASSWORD=motdepasse123
 alembic upgrade head          # crée dev.db (SQLite)
 uvicorn app.main:app --reload # http://localhost:8000/docs
-pytest                        # 18 tests
+pytest                        # 24 tests
 
 # Front (autre terminal)
 cd frontend

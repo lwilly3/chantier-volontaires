@@ -52,7 +52,7 @@ export async function api<T>(chemin: string, options: RequestInit & { json?: unk
       ...reste,
       headers: {
         ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(session && !chemin.startsWith("/api/public") && chemin !== "/api/auth/login"
+        ...(session && (!chemin.startsWith("/api/public") || chemin.startsWith("/api/public/config")) && chemin !== "/api/auth/login"
           ? { Authorization: `Bearer ${session.token}` }
           : {}),
         ...headers,

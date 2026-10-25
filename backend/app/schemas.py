@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 Creneau = Literal["journee", "matin", "apres_midi"]
 Role = Literal["responsable", "adjoint", "relais", "cuisine", "comite"]
@@ -36,6 +36,27 @@ class VolontaireIn(VolontaireBase):
 
 class InscriptionIn(VolontaireIn):
     recrutement: str | None = Field(default=None, max_length=32)  # code ?r= du lien de recrutement
+    code_acces: str | None = Field(default=None, max_length=40)
+
+
+class AccesFormulaireIn(BaseModel):
+    code_acces_actif: bool
+    code_acces: str = Field(default="", max_length=40)
+
+    @field_validator("code_acces")
+    @classmethod
+    def _code_propre(cls, v: str) -> str:
+        return " ".join(v.split())
+
+    @model_validator(mode="after")
+    def _code_obligatoire(self):
+        if self.code_acces_actif and len(self.code_acces.replace(" ", "")) < 4:
+            raise ValueError("Le code d'accès doit faire au moins 4 caractères")
+        return self
+
+
+class AccesIn(BaseModel):
+    code: str = Field(max_length=40)
 
 
 class VolontaireUpdate(VolontaireIn):
@@ -189,6 +210,9 @@ class ParametresIO(BaseModel):
     inscriptions_ouvertes: bool = True
     message_accueil: str = Field(default="", max_length=2000)
     contact_whatsapp: str = Field(default="", max_length=30)
+    # Lecture seule ici : modifié via PUT /api/admin/acces-formulaire
+    code_acces_actif: bool = False
+    code_acces: str = ""
 
     @field_validator("jours_fermes")
     @classmethod
