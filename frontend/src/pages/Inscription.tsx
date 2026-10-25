@@ -4,7 +4,7 @@ import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
-import { memoriserMonToken, monToken } from "../lib/liens";
+import { memoriserMonToken, monToken, oublierMonToken } from "../lib/liens";
 import type { ConfigPublique, ConfigVerrouillee, VolontaireForm, VolontairePublic } from "../lib/types";
 
 export const VIDE: VolontaireForm = {
@@ -27,7 +27,7 @@ export default function Inscription() {
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState("");
   const [inscrit, setInscrit] = useState<VolontairePublic | null>(null);
-  const dejaInscrit = monToken();
+  const [dejaInscrit, setDejaInscrit] = useState(monToken);
   const [params] = useSearchParams();
   // Lien de recrutement (?r=) : sert seulement à rattacher l'inscription, n'ouvre pas l'accès
   const recrutement = params.get("r") ?? "";
@@ -72,6 +72,10 @@ export default function Inscription() {
       <EcranCode
         titre={config.nom_chantier}
         dejaInscrit={dejaInscrit}
+        onOublier={() => {
+          oublierMonToken();
+          setDejaInscrit(null);
+        }}
         onValide={(c) => {
           memoriserCodeAcces(c);
           setCodeAcces(c);
@@ -108,9 +112,13 @@ export default function Inscription() {
   return (
     <Ecran titre={config.nom_chantier}>
       {dejaInscrit && (
-        <div className="carte info">
-          Tu es déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
-        </div>
+        <BandeauDejaInscrit
+          token={dejaInscrit}
+          onOublier={() => {
+            oublierMonToken();
+            setDejaInscrit(null);
+          }}
+        />
       )}
       {config.message_accueil && <p className="intro">{config.message_accueil}</p>}
 
@@ -189,7 +197,17 @@ function memoriserCodeAcces(code: string) {
   }
 }
 
-function EcranCode({ titre, dejaInscrit, onValide }: { titre: string; dejaInscrit: string | null; onValide: (code: string) => void }) {
+function EcranCode({
+  titre,
+  dejaInscrit,
+  onOublier,
+  onValide,
+}: {
+  titre: string;
+  dejaInscrit: string | null;
+  onOublier: () => void;
+  onValide: (code: string) => void;
+}) {
   const [code, setCode] = useState("");
   const [erreur, setErreur] = useState("");
   const [envoi, setEnvoi] = useState(false);
@@ -211,9 +229,10 @@ function EcranCode({ titre, dejaInscrit, onValide }: { titre: string; dejaInscri
   return (
     <Ecran titre={titre}>
       {dejaInscrit && (
-        <div className="carte info">
-          Tu es déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
-        </div>
+        <BandeauDejaInscrit
+          token={dejaInscrit}
+          onOublier={onOublier}
+        />
       )}
       <form className="carte formulaire connexion code-acces" onSubmit={valider}>
         <h2>Code d'accès</h2>
@@ -238,5 +257,18 @@ function EcranCode({ titre, dejaInscrit, onValide }: { titre: string; dejaInscri
         </button>
       </form>
     </Ecran>
+  );
+}
+
+function BandeauDejaInscrit({ token, onOublier }: { token: string; onOublier: () => void }) {
+  return (
+    <div className="carte info deja-inscrit">
+      <p>
+        Tu es déjà inscrit sur ce téléphone. <Link to={`/moi/${token}`}>Modifier mes disponibilités →</Link>
+      </p>
+      <button type="button" className="lien-discret" onClick={onOublier}>
+        Ce n'est pas moi
+      </button>
+    </div>
   );
 }

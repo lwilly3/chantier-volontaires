@@ -32,3 +32,11 @@ export function monToken(): string | null {
     return null;
   }
 }
+
+export function oublierMonToken() {
+  try {
+    localStorage.removeItem(CLE_TOKEN);
+  } catch {
+    /* ignoré */
+  }
+}

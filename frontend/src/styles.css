@@ -489,3 +489,24 @@ a.badge { text-decoration: none; }
 .tableau td { padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--bordure); font-variant-numeric: tabular-nums; }
 .tableau tr.attenue td { color: var(--texte-2); }
 .tableau td:first-child { text-transform: capitalize; }
+
+/* calendrier : jamais plus large que l'écran (téléphones) */
+.cal-entete, .cal-ligne { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.cal-case { min-width: 0; overflow: hidden; }
+.cal-total { white-space: nowrap; }
+@media (max-width: 560px) {
+  .admin-contenu { padding: 0.75rem; }
+  .cal-entete, .cal-ligne { gap: 0.2rem; }
+  .cal-case { padding: 0.25rem 0.3rem 0.35rem; min-height: 54px; border-radius: 8px; }
+  .cal-total { font-size: 1.05rem; }
+  .cal-constate { display: block; margin-left: 0; font-size: 0.6rem; }
+  .legende-niveaux { display: none; }
+  .chiffres { grid-template-columns: 1fr 1fr; }
+}
+.cal-ligne { align-items: stretch; }
+.cal-case { align-self: stretch; margin: 0; }
+
+/* Bandeau « déjà inscrit » avec « Ce n'est pas moi » */
+.deja-inscrit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1rem; }
+.deja-inscrit p { margin: 0; }
+.lien-discret { background: none; border: none; padding: 0; font: inherit; font-size: 0.9rem; color: var(--texte-2); text-decoration: underline; cursor: pointer; width: auto; min-height: 0; }
