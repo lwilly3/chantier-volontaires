@@ -51,14 +51,17 @@ def test_code_exige(client):  # noqa: F811
     assert client.get("/api/public/config").json()["acces"] is True
 
 
-def test_lien_de_recrutement_dispense_du_code(client):  # noqa: F811
+def test_lien_de_recrutement_exige_aussi_le_code(client):  # noqa: F811
     h = admin_headers(client)
     _, hr = creer_relais(client, h)
     code_r = client.get("/api/admin/mon-recrutement", headers=hr).json()["code"]
     activer_code(client, h)
-    assert client.get("/api/public/config", params={"r": code_r}).json()["acces"] is True
-    assert client.post("/api/public/inscription", json={**payload(), "recrutement": code_r}).status_code == 201
-    assert client.get("/api/public/config", params={"r": "inconnu"}).json()["acces"] is False
+    assert client.get("/api/public/config", params={"r": code_r}).json()["acces"] is False
+    assert client.post("/api/public/inscription", json={**payload(), "recrutement": code_r}).status_code == 403
+    r = client.post("/api/public/inscription", json={**payload(), "recrutement": code_r, "code_acces": "KAMBO2026"})
+    assert r.status_code == 201
+    mes = client.get("/api/admin/volontaires?recrute_par=moi", headers=hr).json()
+    assert len(mes) == 1  # toujours rattaché au recruteur
 
 
 def test_code_trop_court_refuse(client):  # noqa: F811

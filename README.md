@@ -29,12 +29,14 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 **Code d'accès au formulaire** (Réglages → Accès au formulaire d'inscription, responsable) : une fois
 activé, `volontaires.sallekambo.org` demande un code avant d'afficher le formulaire, et l'API refuse
 toute inscription sans ce code (10 essais par minute et par IP). Bouton « Générer » et message
-WhatsApp « lien + code » prêt à envoyer. Restent accessibles sans code : les liens personnels des
-volontaires déjà inscrits (`/moi/…`) et les liens de recrutement de l'équipe (`/?r=…`).
+WhatsApp « lien + code » prêt à envoyer. Seuls les liens personnels des volontaires déjà inscrits
+(`/moi/…`) restent accessibles sans code ; les liens de recrutement (`/?r=…`) exigent aussi le code
+(leur message de partage l'inclut automatiquement).
 
 **Lien de recrutement** : chaque membre de l'équipe (responsable, adjoint, homme clé) a un lien
 personnel `/?r=CODE` (Réglages → Mon lien de recrutement). Les volontaires inscrits par ce lien, et
-ceux saisis directement par un homme clé, lui sont rattachés : filtre « Mes recrues », compteur dans
+ceux saisis directement par un homme clé, lui sont rattachés (le nom du recruteur n'est jamais
+affiché aux volontaires) : filtre « Mes recrues », compteur dans
 la liste des comptes, mention « recruté par … » sur la fiche.
 
 **Comptes de l'équipe** (Réglages, responsable uniquement) :

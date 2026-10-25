@@ -36,12 +36,13 @@ def code_valide(p, code: str | None) -> bool:
     return bool(attendu) and hmac.compare_digest(_normaliser_code(code).encode(), attendu.encode())
 
 
-def acces_autorise(db: Session, p, code=None, recrutement=None, jeton=None, membre=None) -> bool:
-    """Le formulaire est accessible si le code n'est pas exigé, ou avec : le bon code, un lien de
-    recrutement valide, le lien personnel d'un volontaire, ou une session de l'équipe."""
+def acces_autorise(db: Session, p, code=None, jeton=None, membre=None) -> bool:
+    """Le formulaire est accessible si le code n'est pas exigé, ou avec : le bon code, le lien
+    personnel d'un volontaire déjà inscrit, ou une session de l'équipe. Un lien de recrutement
+    ne dispense pas du code : il sert uniquement à rattacher l'inscription à son recruteur."""
     if not p.code_acces_actif or membre is not None:
         return True
-    if code_valide(p, code) or _recruteur(db, recrutement) is not None:
+    if code_valide(p, code):
         return True
     if jeton:
         v = db.scalar(select(Volontaire.id).where(Volontaire.token == jeton, Volontaire.actif.is_(True)))
@@ -60,7 +61,6 @@ def verifier_code(data: AccesIn, db: Session = Depends(get_db)):
 @router.get("/config")
 def config(
     code: str | None = None,
-    r: str | None = None,
     jeton: str | None = None,
     db: Session = Depends(get_db),
     membre: Utilisateur | None = Depends(utilisateur_optionnel),
@@ -69,7 +69,7 @@ def config(
     (sans aucun nom) pour orienter les volontaires vers les jours où on manque de monde.
     Si un code d'accès est exigé et absent, seul le nom du chantier est renvoyé."""
     p = get_parametres(db)
-    if not acces_autorise(db, p, code=code, recrutement=r, jeton=jeton, membre=membre):
+    if not acces_autorise(db, p, code=code, jeton=jeton, membre=membre):
         return {"nom_chantier": p.nom_chantier, "code_requis": True, "acces": False}
     return {
         "code_requis": p.code_acces_actif,
@@ -96,7 +96,7 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
     p = get_parametres(db)
     if not p.inscriptions_ouvertes:
         raise HTTPException(403, "Les inscriptions sont fermées pour le moment")
-    if not acces_autorise(db, p, code=data.code_acces, recrutement=data.recrutement):
+    if not acces_autorise(db, p, code=data.code_acces):
         raise HTTPException(403, "Code d'accès manquant ou incorrect")
     tel = normaliser_telephone(data.telephone)
     if db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
@@ -130,15 +130,6 @@ def _recruteur(db: Session, code: str | None) -> Utilisateur | None:
         return None
     u = db.scalar(select(Utilisateur).where(Utilisateur.code_recrutement == code.strip()))
     return u if u is not None and u.actif and u.password_hash else None
-
-
-@router.get("/recruteur/{code}", dependencies=[_limite])
-def recruteur(code: str, db: Session = Depends(get_db)):
-    """Prénom affiché sur le formulaire (« Inscription proposée par … »)."""
-    u = _recruteur(db, code)
-    if u is None:
-        raise HTTPException(404, "Lien de recrutement inconnu")
-    return {"prenom": u.nom.split(" ")[0]}
 
 
 def _par_token(db: Session, token: str) -> Volontaire:

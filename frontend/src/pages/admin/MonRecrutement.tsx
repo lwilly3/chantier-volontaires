@@ -2,21 +2,26 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
-import type { MonRecrutement as TMonRecrutement } from "../../lib/types";
+import type { MonRecrutement as TMonRecrutement, Parametres } from "../../lib/types";
 
 /** Lien d'inscription personnel : les volontaires inscrits par ce lien sont rattachés à vous. */
 export default function MonRecrutement() {
   const [data, setData] = useState<TMonRecrutement | null>(null);
   const [copie, setCopie] = useState(false);
+  const [code, setCode] = useState("");
 
   useEffect(() => {
     api<TMonRecrutement>("/api/admin/mon-recrutement").then(setData).catch(() => {});
+    api<Parametres>("/api/admin/parametres")
+      .then((p) => setCode(p.code_acces_actif ? p.code_acces : ""))
+      .catch(() => {});
   }, []);
 
   if (!data) return null;
   const message =
     "Bonjour ! La rénovation de notre Salle du Royaume commence bientôt et nous avons besoin de volontaires " +
-    `(du lundi au samedi). Indique tes compétences et les jours où tu peux venir ici : ${data.lien}`;
+    `(du lundi au samedi). Indique tes compétences et les jours où tu peux venir ici : ${data.lien}` +
+    (code ? `\nCode d'accès : *${code}*` : "");
 
   return (
     <section className="carte">
@@ -32,6 +37,11 @@ export default function MonRecrutement() {
         vous-même comptent aussi.
       </p>
       <code className="lien">{data.lien}</code>
+      {code && (
+        <p className="aide">
+          Le formulaire est protégé : le message de partage inclut automatiquement le code d'accès <b>{code}</b>.
+        </p>
+      )}
       <div className="actions">
         <a className="bouton whatsapp" href={lienWhatsApp(message)} target="_blank" rel="noreferrer">
           Partager sur WhatsApp
@@ -40,11 +50,11 @@ export default function MonRecrutement() {
           type="button"
           className="bouton"
           onClick={async () => {
-            setCopie(await copier(data.lien));
+            setCopie(await copier(message));
             setTimeout(() => setCopie(false), 2000);
           }}
         >
-          {copie ? "Copié ✓" : "Copier le lien"}
+          {copie ? "Copié ✓" : "Copier le message"}
         </button>
       </div>
     </section>

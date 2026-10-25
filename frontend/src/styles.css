@@ -438,7 +438,6 @@ details.avance summary { cursor: pointer; color: var(--texte-2); font-size: 0.92
 }
 .badge.statique-recrues { background: color-mix(in srgb, var(--accent) 25%, var(--surface)); }
 a.badge { text-decoration: none; }
-.recruteur { border-color: var(--accent); }
 .code-saisie { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.12em; text-transform: uppercase; }
 .code-acces input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.15em; text-transform: uppercase; font-size: 1.2rem; text-align: center; }
 .apercu-message {

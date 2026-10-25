@@ -66,9 +66,9 @@ export default function AccesFormulaire() {
         </span>
       </div>
       <p className="aide">
-        Quand le code est activé, la page d'inscription demande ce code avant d'afficher le formulaire. Les
-        volontaires déjà inscrits gardent l'accès à leur lien personnel, et les liens de recrutement de l'équipe
-        restent utilisables sans code.
+        Quand le code est activé, la page d'inscription demande ce code avant d'afficher le formulaire, y compris
+        pour les liens de recrutement de l'équipe. Les volontaires déjà inscrits gardent l'accès à leur lien
+        personnel sans code.
       </p>
 
       <form className="formulaire" onSubmit={enregistrer}>

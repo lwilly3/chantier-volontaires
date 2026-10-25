@@ -53,8 +53,8 @@ def test_lien_de_recrutement(client):  # noqa: F811
     # le code est stable
     assert client.get("/api/admin/mon-recrutement", headers=hr).json()["code"] == lien["code"]
 
-    assert client.get(f"/api/public/recruteur/{lien['code']}").json() == {"prenom": "Paul"}
-    assert client.get("/api/public/recruteur/inconnu").status_code == 404
+    # le nom du recruteur n'est jamais exposé publiquement
+    assert client.get(f"/api/public/recruteur/{lien['code']}").status_code == 404
 
     # inscription publique via le lien
     r = client.post("/api/public/inscription", json={**payload(tel="691000001"), "recrutement": lien["code"]})
@@ -76,10 +76,13 @@ def test_lien_de_recrutement(client):  # noqa: F811
     par_id = client.get(f"/api/admin/volontaires?recrute_par={rid}", headers=h).json()
     assert len(par_id) == 2
 
-    # un compte désactivé ne recrute plus
+    # un compte désactivé ne recrute plus : inscription acceptée mais sans rattachement
     client.put(f"/api/admin/utilisateurs/{rid}", headers=h, json={
         "nom": "Paul Relais", "email": "relais@test.cm", "role": "relais", "actif": False})
-    assert client.get(f"/api/public/recruteur/{lien['code']}").status_code == 404
+    r = client.post("/api/public/inscription", json={**payload(tel="691000005"), "recrutement": lien["code"]})
+    assert r.status_code == 201
+    v = [x for x in client.get("/api/admin/volontaires", headers=h).json() if x["telephone"] == "+237691000005"][0]
+    assert v["recrute_par_id"] is None
 
 
 def test_invitation_homme_cle(client):  # noqa: F811

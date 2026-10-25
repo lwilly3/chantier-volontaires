@@ -27,27 +27,19 @@ export default function Inscription() {
   const [inscrit, setInscrit] = useState<VolontairePublic | null>(null);
   const dejaInscrit = monToken();
   const [params] = useSearchParams();
-  const [recrutement] = useState(() => lireCodeRecrutement(params.get("r")));
-  const [recruteur, setRecruteur] = useState("");
-
-  useEffect(() => {
-    if (recrutement)
-      api<{ prenom: string }>(`/api/public/recruteur/${encodeURIComponent(recrutement)}`)
-        .then((r) => setRecruteur(r.prenom))
-        .catch(() => {});
-  }, [recrutement]);
+  // Lien de recrutement (?r=) : sert seulement à rattacher l'inscription, n'ouvre pas l'accès
+  const recrutement = params.get("r") ?? "";
 
   useEffect(() => {
     const q = new URLSearchParams();
     if (codeAcces) q.set("code", codeAcces);
-    if (recrutement) q.set("r", recrutement);
     api<ConfigPublique | ConfigVerrouillee>(`/api/public/config?${q}`)
       .then((c) => {
         if (!c.acces && codeAcces) memoriserCodeAcces(""); // code changé entre-temps : on redemande
         setConfig(c);
       })
       .catch((e: ApiError) => setErreurChargement(e.message));
-  }, [codeAcces, recrutement]);
+  }, [codeAcces]);
 
   const envoyer = async (e: FormEvent) => {
     e.preventDefault();
@@ -117,11 +109,6 @@ export default function Inscription() {
           Vous êtes déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
         </div>
       )}
-      {recruteur && (
-        <div className="carte info recruteur">
-          Inscription proposée par <b>{recruteur}</b>. Merci de votre disponibilité !
-        </div>
-      )}
       {config.message_accueil && <p className="intro">{config.message_accueil}</p>}
 
       <form onSubmit={envoyer} className="formulaire">
@@ -165,16 +152,6 @@ export function Ecran({ titre, children }: { titre?: string; children: React.Rea
       <main className="contenu">{children}</main>
     </div>
   );
-}
-
-/** Le code ?r= est gardé le temps de la visite (au cas où la page est rechargée sans paramètre). */
-function lireCodeRecrutement(depuisUrl: string | null): string {
-  try {
-    if (depuisUrl) sessionStorage.setItem("volontaires.recrutement", depuisUrl);
-    return depuisUrl ?? sessionStorage.getItem("volontaires.recrutement") ?? "";
-  } catch {
-    return depuisUrl ?? "";
-  }
 }
 
 const CLE_CODE = "volontaires.codeAcces";
