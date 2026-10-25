@@ -17,7 +17,19 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 | Responsable + adjoints | `/admin/volontaires` | Recherche, filtres, saisie manuelle, désactivation, nouveau lien, export CSV (Excel). |
 | Responsable | `/admin/reglages` | Dates, plafond, jours fermés, compétences, comptes de l'équipe. |
 
-**Rôles** : `responsable` (tout), `adjoint` (volontaires), `cuisine` et `comite` (effectifs uniquement).
+**Rôles** :
+
+| Rôle | Peut |
+|---|---|
+| `responsable` | Tout, y compris réglages, comptes, e-mails, suppression |
+| `adjoint` | Gérer les volontaires, listes du jour, export CSV, journal |
+| `relais` (« Homme clé ») | Inscrire, modifier et désactiver des volontaires (les deux assemblées), voir les téléphones et les listes du jour — sans export, journal, suppression ni réglages |
+| `cuisine`, `comite` | Voir les effectifs par jour uniquement |
+
+**Lien de recrutement** : chaque membre de l'équipe (responsable, adjoint, homme clé) a un lien
+personnel `/?r=CODE` (Réglages → Mon lien de recrutement). Les volontaires inscrits par ce lien, et
+ceux saisis directement par un homme clé, lui sont rattachés : filtre « Mes recrues », compteur dans
+la liste des comptes, mention « recruté par … » sur la fiche.
 
 **Comptes de l'équipe** (Réglages, responsable uniquement) :
 - **Invitation** : nom + rôle (+ e-mail facultatif). L'app génère un lien à usage unique valable 72 h,
@@ -47,7 +59,7 @@ pip install -r requirements-dev.txt
 export ADMIN_EMAIL=vous@exemple.com ADMIN_PASSWORD=motdepasse123
 alembic upgrade head          # crée dev.db (SQLite)
 uvicorn app.main:app --reload # http://localhost:8000/docs
-pytest                        # 15 tests
+pytest                        # 18 tests
 
 # Front (autre terminal)
 cd frontend

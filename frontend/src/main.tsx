@@ -19,6 +19,11 @@ function SiEquipe({ children }: { children: React.ReactElement }) {
   return peut("responsable", "adjoint") ? children : <Navigate to="/admin" replace />;
 }
 
+function SiGestion({ children }: { children: React.ReactElement }) {
+  const { peut } = useSession();
+  return peut("responsable", "adjoint", "relais") ? children : <Navigate to="/admin" replace />;
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <SessionProvider>
@@ -31,8 +36,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/admin/reinitialiser/:token" element={<Jeton />} />
           <Route path="/admin" element={<Layout />}>
             <Route index element={<Couverture />} />
-            <Route path="volontaires" element={<SiEquipe><Volontaires /></SiEquipe>} />
-            <Route path="volontaires/:id" element={<SiEquipe><FicheVolontaire /></SiEquipe>} />
+            <Route path="volontaires" element={<SiGestion><Volontaires /></SiGestion>} />
+            <Route path="volontaires/:id" element={<SiGestion><FicheVolontaire /></SiGestion>} />
             <Route path="journal" element={<SiEquipe><Journal /></SiEquipe>} />
             <Route path="reglages" element={<Reglages />} />
           </Route>

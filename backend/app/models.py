@@ -20,7 +20,7 @@ def now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
-ROLES = ("responsable", "adjoint", "cuisine", "comite")
+ROLES = ("responsable", "adjoint", "relais", "cuisine", "comite")
 CRENEAUX = ("journee", "matin", "apres_midi")
 
 
@@ -37,6 +37,9 @@ class Utilisateur(Base):
     actif: Mapped[bool] = mapped_column(Boolean, default=True)
     # Incrémentée à chaque changement de mot de passe : invalide les sessions ouvertes
     version_session: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Code court du lien de recrutement personnel (/?r=CODE), créé à la première demande
+    code_recrutement: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    __table_args__ = (UniqueConstraint("code_recrutement", name="uq_utilisateurs_code_recrutement"),)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
     @property
@@ -100,10 +103,20 @@ class Volontaire(Base):
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     source: Mapped[str] = mapped_column(String(20), default="public")  # public | adjoint
     actif: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Membre de l'équipe qui a recruté ce volontaire (lien de recrutement ou saisie par un homme clé)
+    recrute_par_id: Mapped[int | None] = mapped_column(
+        ForeignKey("utilisateurs.id", ondelete="SET NULL", name="fk_volontaires_recrute_par"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=now_utc, onupdate=now_utc
     )
+
+    recruteur: Mapped["Utilisateur | None"] = relationship(lazy="selectin")
+
+    @property
+    def recrute_par(self) -> str | None:
+        return self.recruteur.nom if self.recruteur else None
 
     disponibilites: Mapped[list["Disponibilite"]] = relationship(
         back_populates="volontaire",

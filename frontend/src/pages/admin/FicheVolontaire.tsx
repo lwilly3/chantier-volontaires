@@ -14,6 +14,7 @@ export default function FicheVolontaire() {
   const nouveau = id === "nouveau";
   const nav = useNavigate();
   const { peut } = useSession();
+  const voitJournal = peut("responsable", "adjoint");
   const [config, setConfig] = useState<ConfigPublique | null>(null);
   const [v, setV] = useState<VolontaireAdmin | null>(null);
   const [form, setForm] = useState<VolontaireForm>(VIDE);
@@ -41,9 +42,9 @@ export default function FicheVolontaire() {
     api<ConfigPublique>("/api/public/config").then(setConfig).catch((e: ApiError) => setErreur(e.message));
     if (!nouveau) {
       api<VolontaireAdmin>(`/api/admin/volontaires/${id}`).then(charger).catch((e: ApiError) => setErreur(e.message));
-      api<EntreeJournal[]>(`/api/admin/journal?volontaire_id=${id}&limite=30`).then(setJournal).catch(() => {});
+      if (voitJournal) api<EntreeJournal[]>(`/api/admin/journal?volontaire_id=${id}&limite=30`).then(setJournal).catch(() => {});
     }
-  }, [id, nouveau]);
+  }, [id, nouveau, voitJournal]);
 
   const enregistrer = async (e: FormEvent) => {
     e.preventDefault();
@@ -58,7 +59,7 @@ export default function FicheVolontaire() {
       } else {
         charger(await api<VolontaireAdmin>(`/api/admin/volontaires/${id}`, { method: "PUT", json: { ...form, actif } }));
         setMessage("Enregistré.");
-        api<EntreeJournal[]>(`/api/admin/journal?volontaire_id=${id}&limite=30`).then(setJournal);
+        if (voitJournal) api<EntreeJournal[]>(`/api/admin/journal?volontaire_id=${id}&limite=30`).then(setJournal);
       }
     } catch (err) {
       setErreur((err as ApiError).message);
@@ -87,6 +88,7 @@ export default function FicheVolontaire() {
     <div className="fiche">
       <Link to="/admin/volontaires" className="retour">← Volontaires</Link>
       <h2>{nouveau ? "Nouveau volontaire" : v!.nom}</h2>
+      {v?.recrute_par && <p className="aide">Recruté par <b>{v.recrute_par}</b></p>}
 
       <form onSubmit={enregistrer} className="formulaire">
         <section className="carte">

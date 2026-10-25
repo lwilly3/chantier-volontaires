@@ -37,6 +37,7 @@ export function useSession(): Ctx {
 export const LIBELLE_ROLE: Record<Role, string> = {
   responsable: "Responsable",
   adjoint: "Adjoint",
+  relais: "Homme clé",
   cuisine: "Cuisine",
   comite: "Comité",
 };

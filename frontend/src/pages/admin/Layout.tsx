@@ -5,6 +5,7 @@ export default function Layout() {
   const { session, deconnecter, peut } = useSession();
   if (!session) return <Navigate to="/admin/connexion" replace />;
   const equipe = peut("responsable", "adjoint");
+  const gestion = peut("responsable", "adjoint", "relais");
 
   return (
     <div className="admin">
@@ -24,7 +25,7 @@ export default function Layout() {
       </header>
       <nav className="onglets">
         <NavLink to="/admin" end>Couverture</NavLink>
-        {equipe && <NavLink to="/admin/volontaires">Volontaires</NavLink>}
+        {gestion && <NavLink to="/admin/volontaires">Volontaires</NavLink>}
         {equipe && <NavLink to="/admin/journal">Journal</NavLink>}
         <NavLink to="/admin/reglages">Réglages</NavLink>
       </nav>

@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 Creneau = Literal["journee", "matin", "apres_midi"]
-Role = Literal["responsable", "adjoint", "cuisine", "comite"]
+Role = Literal["responsable", "adjoint", "relais", "cuisine", "comite"]
 
 
 class DispoIn(BaseModel):
@@ -34,6 +34,10 @@ class VolontaireIn(VolontaireBase):
     disponibilites: list[DispoIn] = Field(default_factory=list, max_length=120)
 
 
+class InscriptionIn(VolontaireIn):
+    recrutement: str | None = Field(default=None, max_length=32)  # code ?r= du lien de recrutement
+
+
 class VolontaireUpdate(VolontaireIn):
     actif: bool | None = None
 
@@ -50,6 +54,8 @@ class VolontaireAdminOut(VolontaireBase):
     token: str
     source: str
     actif: bool
+    recrute_par_id: int | None = None
+    recrute_par: str | None = None
     created_at: datetime
     updated_at: datetime
     disponibilites: list[DispoOut]
@@ -70,6 +76,7 @@ class UtilisateurOut(BaseModel):
     statut: Literal["actif", "invite", "desactive"]
     invitation_expire_at: datetime | None = None
     invitation_expiree: bool = False
+    nb_recrues: int = 0
 
 
 class UtilisateurIn(BaseModel):

@@ -1,5 +1,5 @@
 export type Creneau = "journee" | "matin" | "apres_midi";
-export type Role = "responsable" | "adjoint" | "cuisine" | "comite";
+export type Role = "responsable" | "adjoint" | "relais" | "cuisine" | "comite";
 export type StatutJour = "vide" | "ok" | "presque" | "complet";
 
 export interface Dispo {
@@ -25,6 +25,8 @@ export interface VolontaireAdmin extends VolontairePublic {
   id: number;
   source: "public" | "adjoint";
   actif: boolean;
+  recrute_par_id: number | null;
+  recrute_par: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -93,6 +95,13 @@ export interface Utilisateur {
   statut: "actif" | "invite" | "desactive";
   invitation_expire_at: string | null;
   invitation_expiree: boolean;
+  nb_recrues: number;
+}
+
+export interface MonRecrutement {
+  code: string;
+  lien: string;
+  nb_recrues: number;
 }
 
 export interface LienCompte {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api, ApiError, telecharger } from "../../lib/api";
 import { court } from "../../lib/dates";
+import { useSession } from "../../lib/session";
 import type { Parametres, VolontaireAdmin } from "../../lib/types";
 
 export default function Volontaires() {
@@ -12,6 +13,10 @@ export default function Volontaires() {
   const [assemblee, setAssemblee] = useState("");
   const [competence, setCompetence] = useState("");
   const [statut, setStatut] = useState("actifs");
+  const [params2] = useSearchParams();
+  const [recrues, setRecrues] = useState(params2.get("recrute_par") === "moi" ? "moi" : "");
+  const { peut } = useSession();
+  const equipe = peut("responsable", "adjoint");
 
   useEffect(() => {
     api<Parametres>("/api/admin/parametres").then(setParams).catch(() => {});
@@ -23,21 +28,24 @@ export default function Volontaires() {
       if (q.trim()) p.set("q", q.trim());
       if (assemblee) p.set("assemblee", assemblee);
       if (competence) p.set("competence", competence);
+      if (recrues) p.set("recrute_par", recrues);
       api<VolontaireAdmin[]>(`/api/admin/volontaires?${p}`)
         .then(setListe)
         .catch((e: ApiError) => setErreur(e.message));
     }, 250);
     return () => clearTimeout(t);
-  }, [q, assemblee, competence, statut]);
+  }, [q, assemblee, competence, statut, recrues]);
 
   return (
     <div className="volontaires">
       <div className="titre-section">
         <h2>Volontaires {liste && <small>({liste.length})</small>}</h2>
         <div className="actions">
-          <button className="bouton" onClick={() => telecharger("/api/admin/export/volontaires.csv", "volontaires.csv")}>
-            Export Excel (CSV)
-          </button>
+          {equipe && (
+            <button className="bouton" onClick={() => telecharger("/api/admin/export/volontaires.csv", "volontaires.csv")}>
+              Export Excel (CSV)
+            </button>
+          )}
           <Link className="bouton principal" to="/admin/volontaires/nouveau">
             + Ajouter
           </Link>
@@ -60,6 +68,10 @@ export default function Volontaires() {
           <option value="inactifs">Désactivés</option>
           <option value="tous">Tous</option>
         </select>
+        <select value={recrues} onChange={(e) => setRecrues(e.target.value)}>
+          <option value="">Tous les recruteurs</option>
+          <option value="moi">Mes recrues</option>
+        </select>
       </div>
 
       {erreur && <p className="alerte">{erreur}</p>}
@@ -81,7 +93,7 @@ export default function Volontaires() {
                   <div className="meta">
                     {v.assemblee} · {v.telephone}
                     {v.est_mineur && " · mineur"}
-                    {v.source === "adjoint" && " · saisi par l'équipe"}
+                    {v.recrute_par ? ` · recruté par ${v.recrute_par}` : v.source === "adjoint" ? " · saisi par l'équipe" : ""}
                   </div>
                   {v.competences.length > 0 && <div className="meta">{v.competences.join(", ")}</div>}
                   {prochains > 0 && (

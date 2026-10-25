@@ -1,6 +1,7 @@
 """Routes de l'espace équipe (responsable, adjoints, cuisine, comité)."""
 import csv
 import io
+import secrets
 from datetime import date
 from typing import Literal
 
@@ -26,7 +27,7 @@ from ..schemas import (
     VolontaireIn,
     VolontaireUpdate,
 )
-from ..security import definir_mot_de_passe, equipe, hash_password, responsable, tous_roles
+from ..security import definir_mot_de_passe, equipe, gestion, hash_password, responsable, tous_roles
 from ..services import (
     charger_volontaire,
     couverture,
@@ -81,7 +82,7 @@ def get_couverture(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_
 
 
 @router.get("/jours/{jour}")
-def get_jour(jour: date, db: Session = Depends(get_db), _: Utilisateur = Depends(equipe)):
+def get_jour(jour: date, db: Session = Depends(get_db), _: Utilisateur = Depends(gestion)):
     p = get_parametres(db)
     return {"jour": jour, "plafond_jour": p.plafond_jour, "volontaires": volontaires_du_jour(db, p, jour)}
 
@@ -94,8 +95,9 @@ def lister(
     competence: str | None = None,
     jour: date | None = None,
     statut: Literal["actifs", "inactifs", "tous"] = "actifs",
+    recrute_par: str | None = None,  # "moi" ou identifiant d'un membre de l'équipe
     db: Session = Depends(get_db),
-    _: Utilisateur = Depends(equipe),
+    moi: Utilisateur = Depends(gestion),
 ):
     stmt = select(Volontaire).options(selectinload(Volontaire.disponibilites)).order_by(Volontaire.nom)
     if statut != "tous":
@@ -109,6 +111,9 @@ def lister(
         stmt = stmt.where(Volontaire.assemblee == assemblee)
     if jour:
         stmt = stmt.where(Volontaire.disponibilites.any(Disponibilite.jour == jour))
+    if recrute_par:
+        rid = moi.id if recrute_par == "moi" else int(recrute_par) if recrute_par.isdigit() else -1
+        stmt = stmt.where(Volontaire.recrute_par_id == rid)
     resultats = db.scalars(stmt).all()
     if competence:  # filtrage en Python : JSON portable SQLite / PostgreSQL
         resultats = [v for v in resultats if competence in (v.competences or [])]
@@ -116,7 +121,7 @@ def lister(
 
 
 @router.post("/volontaires", response_model=VolontaireAdminOut, status_code=201)
-def creer(data: VolontaireIn, db: Session = Depends(get_db), user: Utilisateur = Depends(equipe)):
+def creer(data: VolontaireIn, db: Session = Depends(get_db), user: Utilisateur = Depends(gestion)):
     p = get_parametres(db)
     tel = normaliser_telephone(data.telephone)
     if db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
@@ -130,6 +135,7 @@ def creer(data: VolontaireIn, db: Session = Depends(get_db), user: Utilisateur =
         remarques=data.remarques.strip(),
         token=nouveau_token(),
         source="adjoint",
+        recrute_par_id=user.id if user.role == "relais" else None,
         disponibilites=[],
     )
     db.add(v)
@@ -148,13 +154,13 @@ def _get(db: Session, vid: int) -> Volontaire:
 
 
 @router.get("/volontaires/{vid}", response_model=VolontaireAdminOut)
-def detail(vid: int, db: Session = Depends(get_db), _: Utilisateur = Depends(equipe)):
+def detail(vid: int, db: Session = Depends(get_db), _: Utilisateur = Depends(gestion)):
     return _get(db, vid)
 
 
 @router.put("/volontaires/{vid}", response_model=VolontaireAdminOut)
 def modifier(
-    vid: int, data: VolontaireUpdate, db: Session = Depends(get_db), user: Utilisateur = Depends(equipe)
+    vid: int, data: VolontaireUpdate, db: Session = Depends(get_db), user: Utilisateur = Depends(gestion)
 ):
     p = get_parametres(db)
     v = _get(db, vid)
@@ -182,7 +188,7 @@ def supprimer(vid: int, db: Session = Depends(get_db), user: Utilisateur = Depen
 
 
 @router.post("/volontaires/{vid}/nouveau-lien", response_model=VolontaireAdminOut)
-def regenerer_lien(vid: int, db: Session = Depends(get_db), user: Utilisateur = Depends(equipe)):
+def regenerer_lien(vid: int, db: Session = Depends(get_db), user: Utilisateur = Depends(gestion)):
     v = _get(db, vid)
     v.token = nouveau_token()
     journaliser(db, user.nom, "nouveau_lien", v.id, "L'ancien lien personnel ne fonctionne plus")
@@ -259,7 +265,7 @@ def ecrire_parametres(data: ParametresIO, db: Session = Depends(get_db), user: U
 
 
 # ---------------------------------------------------------------- utilisateurs
-ROLE_LIBELLE = {"responsable": "Responsable", "adjoint": "Adjoint", "cuisine": "Cuisine", "comite": "Comité"}
+ROLE_LIBELLE = {"responsable": "Responsable", "adjoint": "Adjoint", "relais": "Homme clé", "cuisine": "Cuisine", "comite": "Comité"}
 
 
 def _out(db: Session, u: Utilisateur) -> UtilisateurOut:
@@ -317,7 +323,36 @@ def _lien_et_email(db: Session, u: Utilisateur, type_: str, par: Utilisateur, en
 
 @router.get("/utilisateurs", response_model=list[UtilisateurOut])
 def lister_utilisateurs(db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
-    return [_out(db, u) for u in db.scalars(select(Utilisateur).order_by(Utilisateur.nom)).all()]
+    recrues = dict(
+        db.execute(
+            select(Volontaire.recrute_par_id, func.count())
+            .where(Volontaire.recrute_par_id.is_not(None), Volontaire.actif.is_(True))
+            .group_by(Volontaire.recrute_par_id)
+        ).all()
+    )
+    sortie = []
+    for u in db.scalars(select(Utilisateur).order_by(Utilisateur.nom)).all():
+        o = _out(db, u)
+        o.nb_recrues = recrues.get(u.id, 0)
+        sortie.append(o)
+    return sortie
+
+
+@router.get("/mon-recrutement")
+def mon_lien_recrutement(db: Session = Depends(get_db), moi: Utilisateur = Depends(gestion)):
+    """Lien d'inscription personnel : les volontaires inscrits par ce lien sont rattachés à moi."""
+    if not moi.code_recrutement:
+        while True:
+            code = secrets.token_urlsafe(6).replace("-", "").replace("_", "")[:8]
+            if len(code) == 8 and not db.scalar(select(Utilisateur.id).where(Utilisateur.code_recrutement == code)):
+                break
+        moi.code_recrutement = code
+        db.commit()
+    nb = db.scalar(
+        select(func.count()).select_from(Volontaire)
+        .where(Volontaire.recrute_par_id == moi.id, Volontaire.actif.is_(True))
+    )
+    return {"code": moi.code_recrutement, "lien": f"{settings.front_url}/?r={moi.code_recrutement}", "nb_recrues": nb}
 
 
 @router.post("/utilisateurs/inviter", response_model=LienOut, status_code=201)

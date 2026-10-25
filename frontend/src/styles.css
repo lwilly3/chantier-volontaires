@@ -384,7 +384,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .comptes li > span:first-child { flex: 1; display: grid; }
 
 @media (min-width: 720px) {
-  .filtres { grid-template-columns: 2fr 1fr 1fr 1fr; }
+  .filtres { grid-template-columns: 2fr repeat(4, 1fr); }
   .cal-case { min-height: 72px; }
 }
 @media (max-width: 380px) {
@@ -436,3 +436,6 @@ details.avance summary { cursor: pointer; color: var(--texte-2); font-size: 0.92
   .deux-colonnes { grid-template-columns: 1fr; }
   .compte-actions { margin-left: 0; }
 }
+.badge.statique-recrues { background: color-mix(in srgb, var(--accent) 25%, var(--surface)); }
+a.badge { text-decoration: none; }
+.recruteur { border-color: var(--accent); }

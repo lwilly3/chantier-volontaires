@@ -89,7 +89,9 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
         </button>
       </div>
       <p className="aide">
-        <b>Adjoint</b> : gère les volontaires. <b>Cuisine</b> et <b>Comité</b> : voient uniquement les effectifs par jour.
+        <b>Adjoint</b> : gère les volontaires. <b>Homme clé</b> : inscrit, modifie et désactive des volontaires, voit
+        les listes du jour et recrute avec son propre lien (sans export, journal, suppression ni réglages).{" "}
+        <b>Cuisine</b> et <b>Comité</b> : voient uniquement les effectifs par jour.
         La personne invitée choisit elle-même son mot de passe grâce au lien reçu.
       </p>
 
@@ -199,6 +201,7 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
               <span className="badge ok">{LIBELLE_ROLE[u.role]}</span>
               {u.statut === "invite" && <span className="badge presque">Invité</span>}
               {u.statut === "desactive" && <span className="badge vide">Désactivé</span>}
+              {u.nb_recrues > 0 && <span className="badge statique-recrues">{u.nb_recrues} recrue{u.nb_recrues > 1 ? "s" : ""}</span>}
             </div>
             <div className="compte-actions">
               {u.statut === "invite" ? (

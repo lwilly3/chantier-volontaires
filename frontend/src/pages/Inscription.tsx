@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
 import LienPersonnel from "../components/LienPersonnel";
@@ -25,6 +25,16 @@ export default function Inscription() {
   const [erreur, setErreur] = useState("");
   const [inscrit, setInscrit] = useState<VolontairePublic | null>(null);
   const dejaInscrit = monToken();
+  const [params] = useSearchParams();
+  const [recrutement] = useState(() => lireCodeRecrutement(params.get("r")));
+  const [recruteur, setRecruteur] = useState("");
+
+  useEffect(() => {
+    if (recrutement)
+      api<{ prenom: string }>(`/api/public/recruteur/${encodeURIComponent(recrutement)}`)
+        .then((r) => setRecruteur(r.prenom))
+        .catch(() => {});
+  }, [recrutement]);
 
   useEffect(() => {
     api<ConfigPublique>("/api/public/config")
@@ -39,7 +49,10 @@ export default function Inscription() {
     if (form.disponibilites.length === 0) return setErreur("Sélectionnez au moins un jour de disponibilité.");
     setEnvoi(true);
     try {
-      const v = await api<VolontairePublic>("/api/public/inscription", { method: "POST", json: form });
+      const v = await api<VolontairePublic>("/api/public/inscription", {
+        method: "POST",
+        json: { ...form, recrutement: recrutement || null },
+      });
       memoriserMonToken(v.token);
       setInscrit(v);
       window.scrollTo({ top: 0 });
@@ -85,6 +98,11 @@ export default function Inscription() {
           Vous êtes déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
         </div>
       )}
+      {recruteur && (
+        <div className="carte info recruteur">
+          Inscription proposée par <b>{recruteur}</b>. Merci de votre disponibilité !
+        </div>
+      )}
       {config.message_accueil && <p className="intro">{config.message_accueil}</p>}
 
       <form onSubmit={envoyer} className="formulaire">
@@ -128,4 +146,14 @@ export function Ecran({ titre, children }: { titre?: string; children: React.Rea
       <main className="contenu">{children}</main>
     </div>
   );
+}
+
+/** Le code ?r= est gardé le temps de la visite (au cas où la page est rechargée sans paramètre). */
+function lireCodeRecrutement(depuisUrl: string | null): string {
+  try {
+    if (depuisUrl) sessionStorage.setItem("volontaires.recrutement", depuisUrl);
+    return depuisUrl ?? sessionStorage.getItem("volontaires.recrutement") ?? "";
+  } catch {
+    return depuisUrl ?? "";
+  }
 }

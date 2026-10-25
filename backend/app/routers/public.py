@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..db import get_db
-from ..models import Volontaire
+from ..models import Utilisateur, Volontaire
 from ..ratelimit import limit
-from ..schemas import VolontaireIn, VolontairePublicOut
+from ..schemas import InscriptionIn, VolontaireIn, VolontairePublicOut
 from ..services import (
     charger_volontaire,
     couverture,
@@ -48,7 +48,7 @@ def config(db: Session = Depends(get_db)):
 
 
 @router.post("/inscription", response_model=VolontairePublicOut, status_code=201, dependencies=[_limite])
-def inscription(data: VolontaireIn, db: Session = Depends(get_db)):
+def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
     p = get_parametres(db)
     if not p.inscriptions_ouvertes:
         raise HTTPException(403, "Les inscriptions sont fermées pour le moment")
@@ -68,6 +68,7 @@ def inscription(data: VolontaireIn, db: Session = Depends(get_db)):
         remarques=data.remarques.strip(),
         token=nouveau_token(),
         source="public",
+        recrute_par_id=getattr(_recruteur(db, data.recrutement), "id", None),
         disponibilites=[],
     )
     db.add(v)
@@ -76,6 +77,22 @@ def inscription(data: VolontaireIn, db: Session = Depends(get_db)):
     journaliser(db, "volontaire", "inscription", v.id, f"{len(v.disponibilites)} jour(s)")
     db.commit()
     return v
+
+
+def _recruteur(db: Session, code: str | None) -> Utilisateur | None:
+    if not code:
+        return None
+    u = db.scalar(select(Utilisateur).where(Utilisateur.code_recrutement == code.strip()))
+    return u if u is not None and u.actif and u.password_hash else None
+
+
+@router.get("/recruteur/{code}", dependencies=[_limite])
+def recruteur(code: str, db: Session = Depends(get_db)):
+    """Prénom affiché sur le formulaire (« Inscription proposée par … »)."""
+    u = _recruteur(db, code)
+    if u is None:
+        raise HTTPException(404, "Lien de recrutement inconnu")
+    return {"prenom": u.nom.split(" ")[0]}
 
 
 def _par_token(db: Session, token: str) -> Volontaire:

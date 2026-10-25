@@ -111,7 +111,7 @@ function Tuile({ valeur, libelle, alerte, children }: { valeur: number; libelle:
 
 function DetailJour({ jour, plafond }: { jour: JourCouverture; plafond: number }) {
   const { peut } = useSession();
-  const equipe = peut("responsable", "adjoint");
+  const equipe = peut("responsable", "adjoint", "relais");
   const [liste, setListe] = useState<VolontaireDuJour[] | null>(null);
   const [copie, setCopie] = useState(false);
 

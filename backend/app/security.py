@@ -68,6 +68,8 @@ def require_roles(*roles: str):
 
 
 # Raccourcis
-tous_roles = require_roles("responsable", "adjoint", "cuisine", "comite")
+tous_roles = require_roles("responsable", "adjoint", "relais", "cuisine", "comite")
 equipe = require_roles("responsable", "adjoint")
+# Gestion courante des volontaires : équipe + hommes clés (sans export, journal, suppression ni réglages)
+gestion = require_roles("responsable", "adjoint", "relais")
 responsable = require_roles("responsable")
