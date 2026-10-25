@@ -1,0 +1,131 @@
+import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
+import ChampsVolontaire from "../components/ChampsVolontaire";
+import DispoGrid from "../components/DispoGrid";
+import LienPersonnel from "../components/LienPersonnel";
+import { api, ApiError } from "../lib/api";
+import { memoriserMonToken, monToken } from "../lib/liens";
+import type { ConfigPublique, VolontaireForm, VolontairePublic } from "../lib/types";
+
+export const VIDE: VolontaireForm = {
+  nom: "",
+  telephone: "",
+  assemblee: "",
+  competences: [],
+  est_mineur: false,
+  remarques: "",
+  disponibilites: [],
+};
+
+export default function Inscription() {
+  const [config, setConfig] = useState<ConfigPublique | null>(null);
+  const [erreurChargement, setErreurChargement] = useState("");
+  const [form, setForm] = useState<VolontaireForm>(VIDE);
+  const [envoi, setEnvoi] = useState(false);
+  const [erreur, setErreur] = useState("");
+  const [inscrit, setInscrit] = useState<VolontairePublic | null>(null);
+  const dejaInscrit = monToken();
+
+  useEffect(() => {
+    api<ConfigPublique>("/api/public/config")
+      .then(setConfig)
+      .catch((e: ApiError) => setErreurChargement(e.message));
+  }, []);
+
+  const envoyer = async (e: FormEvent) => {
+    e.preventDefault();
+    setErreur("");
+    if (!form.assemblee) return setErreur("Choisissez votre assemblée.");
+    if (form.disponibilites.length === 0) return setErreur("Sélectionnez au moins un jour de disponibilité.");
+    setEnvoi(true);
+    try {
+      const v = await api<VolontairePublic>("/api/public/inscription", { method: "POST", json: form });
+      memoriserMonToken(v.token);
+      setInscrit(v);
+      window.scrollTo({ top: 0 });
+    } catch (err) {
+      setErreur((err as ApiError).message);
+    } finally {
+      setEnvoi(false);
+    }
+  };
+
+  if (erreurChargement) return <Ecran><p className="alerte">{erreurChargement}</p></Ecran>;
+  if (!config) return <Ecran><p className="chargement">Chargement…</p></Ecran>;
+
+  if (inscrit) {
+    return (
+      <Ecran titre={config.nom_chantier}>
+        <div className="carte succes">
+          <h2>Merci {inscrit.nom.split(" ")[0]} !</h2>
+          <p>
+            Votre inscription est enregistrée pour <b>{inscrit.disponibilites.length} jour(s)</b>. Le service volontaires
+            vous contactera sur WhatsApp avant le chantier.
+          </p>
+        </div>
+        <LienPersonnel token={inscrit.token} nom={inscrit.nom} important />
+      </Ecran>
+    );
+  }
+
+  if (!config.inscriptions_ouvertes) {
+    return (
+      <Ecran titre={config.nom_chantier}>
+        <div className="carte">
+          <p>Les inscriptions sont fermées pour le moment. Rapprochez-vous du service volontaires.</p>
+        </div>
+      </Ecran>
+    );
+  }
+
+  return (
+    <Ecran titre={config.nom_chantier}>
+      {dejaInscrit && (
+        <div className="carte info">
+          Vous êtes déjà inscrit sur ce téléphone. <Link to={`/moi/${dejaInscrit}`}>Modifier mes disponibilités →</Link>
+        </div>
+      )}
+      {config.message_accueil && <p className="intro">{config.message_accueil}</p>}
+
+      <form onSubmit={envoyer} className="formulaire">
+        <section className="carte">
+          <h2><span className="etape">1</span> Vos informations</h2>
+          <ChampsVolontaire valeur={form} onChange={setForm} assemblees={config.assemblees} competences={config.competences} />
+        </section>
+
+        <section className="carte">
+          <h2><span className="etape">2</span> Vos disponibilités</h2>
+          <DispoGrid
+            jours={config.jours}
+            valeur={form.disponibilites}
+            onChange={(d) => setForm({ ...form, disponibilites: d })}
+            remplissage={config.remplissage}
+            plafond={config.plafond_jour}
+          />
+        </section>
+
+        <div className="barre-envoi">
+          {erreur && <p className="alerte">{erreur}</p>}
+          <button className="bouton principal large" disabled={envoi}>
+            {envoi ? "Envoi…" : "Je m'inscris"}
+          </button>
+        </div>
+      </form>
+    </Ecran>
+  );
+}
+
+export function Ecran({ titre, children }: { titre?: string; children: React.ReactNode }) {
+  return (
+    <div className="public">
+      <header className="bandeau">
+        <img src="/icon.svg" alt="" width={36} height={36} />
+        <div>
+          <p className="surtitre">Service volontaires</p>
+          <h1>{titre ?? "Chantier de rénovation"}</h1>
+        </div>
+      </header>
+      <main className="contenu">{children}</main>
+    </div>
+  );
+}
