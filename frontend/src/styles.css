@@ -545,3 +545,4 @@ a.badge { text-decoration: none; }
 .roles-demo { display: grid; gap: 0.5rem; }
 .roles-demo .bouton { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 0.1rem; padding: 0.7rem 0.9rem; height: auto; }
 .roles-demo small { color: var(--texte-2); font-weight: 400; }
+.comptes li .panneau-lien { flex-basis: 100%; margin: 0.4rem 0 0.2rem; }

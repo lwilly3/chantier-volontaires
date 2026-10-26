@@ -72,126 +72,20 @@ automatiquement en **réserve** (ordre d'engagement conservé même quand on mod
 
 ---
 
-## Développement local
+## Installation et déploiement
 
-```bash
-# API
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-export ADMIN_EMAIL=vous@exemple.com ADMIN_PASSWORD=motdepasse123
-alembic upgrade head          # crée dev.db (SQLite)
-uvicorn app.main:app --reload # http://localhost:8000/docs
-pytest                        # 31 tests
+Tout est décrit pas à pas dans **[docs/INSTALLATION.md](docs/INSTALLATION.md)**,
+et la configuration Cloudflare (domaine, DNS, SSL, Pages, R2) dans **[docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)** :
 
-# Front (autre terminal)
-cd frontend
-npm install
-npm run dev                   # http://localhost:5173 (API attendue sur localhost:8000)
-```
+| Environnement | Front | API |
+|---|---|---|
+| Production | `https://volontaires.sallekambo.org` (Cloudflare Pages) | `https://api.sallekambo.org` (Dokploy + PostgreSQL) |
+| Démonstration | `https://demo.sallekambo.org` (Cloudflare Pages, `VITE_DEMO=1`) | `https://api-demo.sallekambo.org` (Dokploy, `DEMO=1`, SQLite) |
 
----
+Modèles de variables : `backend/.env.example`, `backend/demo.env.example`,
+`frontend/.env.example`, `frontend/demo.env.example`.
 
-## Déploiement
-
-### 1. Base de données PostgreSQL (Dokploy)
-
-1. Dans votre projet Dokploy : **Create Service → Database → PostgreSQL**.
-2. Nom : `volontaires-db`, base `volontaires`, utilisateur `volontaires`, mot de passe solide.
-3. **Deploy**. Notez l'**Internal Connection URL** (du type
-   `postgresql://volontaires:…@volontaires-db-xxxx:5432/volontaires`).
-4. Onglet **Backups** : activez une sauvegarde quotidienne (vers S3 ou Cloudflare R2).
-   Le recensement ne doit pas être perdu en plein chantier.
-
-### 2. API FastAPI (Dokploy)
-
-1. **Create Service → Application** → source Git (le dépôt) ou upload.
-2. **Build Type : Dockerfile**, **Build path / context : `backend`**, Dockerfile : `Dockerfile`.
-3. **Environment** (voir `backend/.env.example`) :
-   ```
-   DATABASE_URL=<Internal Connection URL de l'étape 1>
-   JWT_SECRET=<chaîne aléatoire de 48+ caractères : openssl rand -hex 32>
-   CORS_ORIGINS=https://volontaires.sallekambo.org
-   ADMIN_EMAIL=lwilly32@gmail.com
-   ADMIN_PASSWORD=<mot de passe du premier compte responsable>
-   ADMIN_NOM=Willy
-   ```
-4. **Domains** : `api.sallekambo.org`, port conteneur **8000**, HTTPS activé (Let's Encrypt).
-5. **Deploy**. Au démarrage, le conteneur applique les migrations (`alembic upgrade head`)
-   puis crée le compte responsable s'il n'existe aucun compte.
-6. Vérifiez : `https://api.sallekambo.org/api/health` → `{"status":"ok"}`.
-
-> `ADMIN_PASSWORD` ne sert qu'au tout premier démarrage. Changez ensuite le mot de passe
-> dans **Réglages → Mon mot de passe**.
-
-### 3. DNS Cloudflare
-
-Dans Cloudflare → `sallekambo.org` → **DNS** :
-
-| Type | Nom | Contenu | Proxy |
-|---|---|---|---|
-| A | `api` | IP du VPS | **DNS only (nuage gris)** au départ |
-
-Laissez le nuage **gris** le temps que Dokploy obtienne son certificat Let's Encrypt.
-Ensuite, vous pouvez passer en **orange (proxied)**, mais réglez alors
-**SSL/TLS → Mode : Full (strict)** pour éviter les boucles de redirection.
-
-L'enregistrement `volontaires` est créé automatiquement à l'étape 4.
-
-### 4. Front (Cloudflare Pages, plan gratuit)
-
-1. Cloudflare → **Workers & Pages → Create → Pages → Connect to Git** (ou *Direct Upload* du dossier `dist`).
-2. Réglages de build :
-   - Framework preset : **Vite** (ou *None*)
-   - Root directory : **`frontend`**
-   - Build command : **`npm run build`**
-   - Output directory : **`dist`**
-3. **Variables d'environnement (Production)** : `VITE_API_URL=https://api.sallekambo.org`
-   (variable lue **au moment du build** : redéployez après l'avoir modifiée).
-4. **Custom domains** → `volontaires.sallekambo.org`.
-5. Pour économiser le quota de builds (500/mois par compte), dans
-   **Settings → Builds → Branch control**, désactivez les déploiements de preview.
-
-Le routage des pages (`/moi/…`, `/admin/…`) fonctionne nativement : Cloudflare Pages
-renvoie `index.html` pour les chemins inconnus quand il n'y a pas de `404.html`.
-
-### 5. Mise en service
-
-1. Ouvrez `https://volontaires.sallekambo.org/admin`, connectez-vous.
-2. **Réglages** : vérifiez les dates (par défaut 23/11/2026 → 23/01/2027), les jours
-   fermés (25/12 et 01/01), le plafond (50), les compétences.
-3. Créez les comptes des adjoints (rôle *Adjoint*), de la cuisine et du comité.
-4. Diffusez le lien `https://volontaires.sallekambo.org` dans les groupes WhatsApp.
-
----
-
-### 6. Espace de démonstration (facultatif)
-
-Une copie de l'application avec des données fictives, pour présenter l'outil sans toucher aux vraies données.
-Elle tourne avec le même code, en mode `DEMO=1` : base SQLite jetable, ~90 faux volontaires sur un chantier
-« en cours », présents déjà saisis, remise à zéro au démarrage et chaque nuit vers 3 h.
-
-- **Connexion en un clic** par rôle (responsable, adjoint, homme clé, cuisine, comité) sur `/admin/connexion`.
-- Code du formulaire : `DEMO` · mot de passe du lien des présents : `demo` (rappelés à l'écran).
-- **Bloqué** : changement de mot de passe, e-mails, modification ou suppression des comptes, code d'accès,
-  mot de passe des présents. Le responsable ou un adjoint peut « Remettre à zéro » depuis le bandeau.
-
-**API (Dokploy)** : nouvelle application `volontaires-demo`, même dépôt, *Build path* `/backend`, port 8000,
-domaine `api-demo.sallekambo.org` (HTTPS Let's Encrypt). Variables :
-
-```
-DEMO=1
-DATABASE_URL=sqlite:////tmp/demo.db
-JWT_SECRET=<autre secret de 32+ caractères, différent de la prod>
-CORS_ORIGINS=https://demo.sallekambo.org
-```
-
-**DNS Cloudflare** : enregistrement `A` `api-demo` → IP du VPS, proxy désactivé (nuage gris).
-
-**Front (Cloudflare Pages)** : nouveau projet `volontaires-demo`, même dépôt, *Root* `frontend`,
-build `npm run build`, sortie `dist`. Variables : `VITE_API_URL=https://api-demo.sallekambo.org`,
-`VITE_DEMO=1`, `NODE_VERSION=22`. Domaine personnalisé : `demo.sallekambo.org`.
+Mise à jour : `git push` sur `main` redéploie automatiquement les quatre services.
 
 ## Notes techniques
 
@@ -202,7 +96,7 @@ build `npm run build`, sortie `dist`. Variables : `VITE_API_URL=https://api-demo
 - Limitation anti-abus en mémoire : 20 requêtes/min/IP sur les routes publiques,
   10 tentatives de connexion/min/IP (`RATE_LIMIT_PUBLIC`, `RATE_LIMIT_LOGIN`).
 - L'API refuse de démarrer sur PostgreSQL si `JWT_SECRET` fait moins de 32 caractères.
-- Tests : `pytest` (SQLite) ou `TEST_DATABASE_URL=postgresql://… pytest` (PostgreSQL).
+- Tests : `pytest` (SQLite, 33 tests) ou `TEST_DATABASE_URL=postgresql://… pytest` (PostgreSQL).
 
 ## Phase 2 (prévue)
 

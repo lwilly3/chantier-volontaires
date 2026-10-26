@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, ApiError } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
 import { LIBELLE_ROLE, useSession } from "../../lib/session";
@@ -94,8 +94,11 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
         <b>Cuisine</b> et <b>Comité</b> : voient uniquement les effectifs par jour.
         La personne invitée choisit elle-même son mot de passe grâce au lien reçu.
       </p>
-
-      {resultat && <PanneauLien type={resultat.type} data={resultat.data} onFermer={() => setResultat(null)} />}
+      <p className="aide">
+        Après « Créer l'invitation », le lien s'affiche sous la personne avec les boutons <b>WhatsApp</b> et{" "}
+        <b>Copier</b>. Pour le retrouver plus tard, touche <b>« Obtenir le lien »</b> : un nouveau lien est créé et
+        l'ancien ne fonctionne plus.
+      </p>
 
       {form && (
         <form className="formulaire sous-carte" onSubmit={enregistrer}>
@@ -206,8 +209,8 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
             <div className="compte-actions">
               {u.statut === "invite" ? (
                 <>
-                  <button className="bouton petit" disabled={occupe} onClick={() => genererLien(u, "invitation")}>
-                    {u.invitation_expiree ? "Nouvelle invitation" : "Renvoyer"}
+                  <button className="bouton petit principal" disabled={occupe} onClick={() => genererLien(u, "invitation")}>
+                    {u.invitation_expiree ? "Nouveau lien d'invitation" : "Obtenir le lien"}
                   </button>
                   <button className="bouton petit discret" disabled={occupe} onClick={() => annulerInvitation(u)}>Annuler</button>
                 </>
@@ -229,6 +232,9 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
                 Modifier
               </button>
             </div>
+            {resultat && resultat.data.utilisateur.id === u.id && (
+              <PanneauLien type={resultat.type} data={resultat.data} onFermer={() => setResultat(null)} />
+            )}
           </li>
         ))}
       </ul>
@@ -237,7 +243,11 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
 }
 
 function PanneauLien({ type, data, onFermer }: { type: "invitation" | "reinitialisation"; data: LienCompte; onFermer: () => void }) {
-  const [copie, setCopie] = useState(false);
+  const [copie, setCopie] = useState<"" | "message" | "lien">("");
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [data.lien]);
   const u = data.utilisateur;
   const prenom = u.nom.split(" ")[0];
   const message =
@@ -246,7 +256,7 @@ function PanneauLien({ type, data, onFermer }: { type: "invitation" | "reinitial
       : `Bonjour ${prenom}, voici ton lien pour choisir un nouveau mot de passe sur l'espace équipe du service volontaires (valable jusqu'à ${new Date(data.expire_at).toLocaleTimeString("fr-FR", { timeStyle: "short" })}, une seule utilisation) : ${data.lien}`;
 
   return (
-    <div className="panneau-lien">
+    <div className="panneau-lien" ref={ref}>
       <div className="titre-section">
         <h3>{type === "invitation" ? `Invitation créée pour ${u.nom}` : `Lien de réinitialisation pour ${u.nom}`}</h3>
         <button className="bouton petit discret" onClick={onFermer} aria-label="Fermer">✕</button>
@@ -268,11 +278,21 @@ function PanneauLien({ type, data, onFermer }: { type: "invitation" | "reinitial
           type="button"
           className="bouton"
           onClick={async () => {
-            setCopie(await copier(message));
-            setTimeout(() => setCopie(false), 2000);
+            setCopie((await copier(message)) ? "message" : "");
+            setTimeout(() => setCopie(""), 2000);
           }}
         >
-          {copie ? "Copié ✓" : "Copier le message"}
+          {copie === "message" ? "Copié ✓" : "Copier le message"}
+        </button>
+        <button
+          type="button"
+          className="bouton discret"
+          onClick={async () => {
+            setCopie((await copier(data.lien)) ? "lien" : "");
+            setTimeout(() => setCopie(""), 2000);
+          }}
+        >
+          {copie === "lien" ? "Copié ✓" : "Copier le lien seul"}
         </button>
       </div>
     </div>
