@@ -9,7 +9,7 @@ from .config import settings
 from .db import SessionLocal
 from .models import Utilisateur
 from . import demo
-from .routers import admin, auth, presences, public
+from .routers import admin, auth, messages, presences, public
 from .security import hash_password
 from .services import get_parametres
 
@@ -53,6 +53,7 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(presences.admin)
 app.include_router(presences.lien)
+app.include_router(messages.router)
 if settings.demo:
     app.middleware("http")(demo.garde_fou)
     app.include_router(demo.router)

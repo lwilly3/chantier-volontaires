@@ -552,3 +552,28 @@ a.badge { text-decoration: none; }
 .case.fige.pris { opacity: 0.6; }
 .case .cadenas { font-size: 0.6rem; line-height: 1; margin-top: 3px; }
 .semaine:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Messages WhatsApp */
+.messages { display: grid; gap: 1rem; }
+.messages h2 { margin-top: 0; }
+.choix-cible, .modeles { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.8rem; }
+.compte-dest { margin: 0.4rem 0 0; color: var(--texte-2); }
+.champ-auto { cursor: pointer; margin: 0.15rem 0.2rem 0 0; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+.apercu-message { background: #e7f6ec; border-radius: 12px 12px 12px 4px; padding: 0.6rem 0.8rem; margin: 0.6rem 0; max-width: 34rem; }
+.apercu-message small { color: var(--texte-2); }
+.apercu-message p { margin: 0.2rem 0 0; white-space: pre-wrap; word-break: break-word; }
+.sous-bloc { border-top: 1px solid var(--bordure); padding-top: 0.9rem; margin-top: 0.9rem; }
+.sous-bloc:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.sous-bloc h3 { margin: 0 0 0.4rem; }
+.liste-envoi { list-style: none; padding: 0; margin: 0.8rem 0; }
+.liste-envoi li { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.45rem 0; border-bottom: 1px solid var(--bordure); }
+.liste-envoi li div { display: grid; }
+.liste-envoi li small { color: var(--texte-2); }
+.liste-envoi li.fait { opacity: 0.55; }
+.champs.deux { grid-template-columns: 1fr 1fr; }
+@media (max-width: 560px) { .champs.deux { grid-template-columns: 1fr; } }
+@media (prefers-color-scheme: dark) { .apercu-message { background: #1f3a2c; } }
+/* Communauté WhatsApp côté volontaire */
+.carte.communaute { border: 1px solid color-mix(in srgb, var(--whatsapp) 45%, transparent); }
+.carte.communaute h3 { margin: 0 0 0.3rem; }
+.carte.communaute p { margin: 0 0 0.7rem; }

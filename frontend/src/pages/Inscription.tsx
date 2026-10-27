@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
+import CarteCommunaute from "../components/CarteCommunaute";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
 import { DEMO, DEMO_CODE_ACCES } from "../lib/demo";
@@ -96,6 +97,7 @@ export default function Inscription() {
           </p>
         </div>
         <LienPersonnel token={inscrit.token} nom={inscrit.nom} monNumero={inscrit.telephone} important />
+        {"lien_communaute" in config && <CarteCommunaute lien={config.lien_communaute} />}
       </Ecran>
     );
   }

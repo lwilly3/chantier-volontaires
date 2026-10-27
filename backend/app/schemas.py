@@ -245,9 +245,18 @@ class ParametresIO(BaseModel):
     code_acces: str = ""
     compter_mineurs_plafond: bool = False
     figer_jours_passes: bool = True
+    lien_communaute: str = Field(default="", max_length=300)
     # Lecture seule ici : modifié via PUT /api/admin/presences-acces
     presences_actif: bool = False
     presences_mdp_defini: bool = False
+
+    @field_validator("lien_communaute")
+    @classmethod
+    def _lien_whatsapp(cls, v: str) -> str:
+        v = v.strip()
+        if v and not v.startswith(("https://chat.whatsapp.com/", "https://whatsapp.com/", "https://www.whatsapp.com/")):
+            raise ValueError("Le lien doit être un lien d'invitation WhatsApp (https://chat.whatsapp.com/…)")
+        return v
 
     @field_validator("jours_fermes")
     @classmethod

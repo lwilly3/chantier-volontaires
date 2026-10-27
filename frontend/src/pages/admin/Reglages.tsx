@@ -112,6 +112,21 @@ function ParametresChantier() {
         <span>Message d'accueil du formulaire</span>
         <textarea rows={3} value={p.message_accueil} onChange={(e) => maj("message_accueil", e.target.value)} />
       </label>
+      <label className="champ">
+        <span>
+          Lien d'invitation de la communauté WhatsApp <small>(facultatif)</small>
+        </span>
+        <input
+          type="url"
+          placeholder="https://chat.whatsapp.com/…"
+          value={p.lien_communaute}
+          onChange={(e) => maj("lien_communaute", e.target.value)}
+        />
+        <small className="aide">
+          WhatsApp → ta communauté → « Inviter des membres » → « Copier le lien ». Il s'affiche aux volontaires après
+          leur inscription et sur leur page personnelle, et peut être inséré dans les messages avec {"{communauté}"}.
+        </small>
+      </label>
       <label className="case-a-cocher">
         <input
           type="checkbox"

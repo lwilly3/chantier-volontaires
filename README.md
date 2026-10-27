@@ -15,6 +15,7 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 | Volontaires | `/moi/<lien>` | Lien personnel pour modifier ses jours à tout moment. |
 | Équipe | `/admin` | Couverture par jour (jauge sur le plafond de 50), repas à prévoir, répartition par assemblée et compétence, liste nominative, message WhatsApp du jour à copier. |
 | Responsable + adjoints | `/admin/volontaires` | Recherche, filtres, saisie manuelle, désactivation, nouveau lien, export CSV (Excel). |
+| Responsable + adjoints + hommes clés | `/admin/messages` | Messages WhatsApp : à tous, aux volontaires d'un jour (attendus / réserve), à une assemblée ou à ses recrues. Modèles, champs personnalisés, publication dans la communauté ou un groupe, envoi un par un avec suivi, numéros et contacts (.vcf). |
 | Responsable | `/admin/reglages` | Dates, plafond, jours fermés, compétences, comptes de l'équipe. |
 
 **Rôles** :
@@ -30,6 +31,17 @@ Application de gestion des volontaires pour la rénovation de la Salle du Royaum
 par l'API). Un volontaire peut indiquer le nombre de mineurs à sa charge qui pourraient l'accompagner :
 ils apparaissent dans la couverture du jour (« + N mineurs accompagnés »), sont comptés dans les repas
 à prévoir (hors volontaires en réserve), dans la liste nominative, le message WhatsApp du jour et l'export.
+
+**Messages WhatsApp** : l'application ne peut pas envoyer seule de messages WhatsApp (aucune API
+gratuite) ; elle prépare tout et ouvre WhatsApp, message déjà écrit. Deux façons d'envoyer :
+*dans la communauté ou un groupe* (un message pour tous, `{prénom}` devient « à tous ») ou *un par
+un* (message personnalisé avec `{prénom}`, `{jour}`, `{créneau}`, `{lien}`, `{communauté}` ; la liste
+retient qui l'a reçu sur l'appareil). Chaque envoi est tracé dans le journal. Un homme clé n'écrit qu'à
+ses recrues. Le lien d'invitation de la communauté WhatsApp (Réglages → Chantier) est proposé aux
+volontaires après l'inscription et sur leur page personnelle.
+
+**Jours passés figés** (Réglages, activé par défaut) : les volontaires ne peuvent plus modifier les
+jours antérieurs à aujourd'hui ; l'équipe peut toujours corriger depuis la fiche.
 
 **Présents constatés et analyses** (facultatif) : chaque jour passé, on peut indiquer le nombre
 approximatif d'adultes (et de mineurs) réellement présents, avec une note. Saisie par les responsables

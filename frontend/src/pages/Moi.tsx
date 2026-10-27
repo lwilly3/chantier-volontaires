@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
+import CarteCommunaute from "../components/CarteCommunaute";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
 import { memoriserMonToken } from "../lib/liens";
@@ -82,6 +83,7 @@ export default function Moi() {
           </button>
         </div>
       </form>
+      <CarteCommunaute lien={config.lien_communaute} />
       <LienPersonnel token={token} nom={form.nom} monNumero={form.telephone} />
     </Ecran>
   );

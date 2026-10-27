@@ -163,7 +163,8 @@ Se connecter sur `https://volontaires.sallekambo.org/admin/connexion` avec `ADMI
 1. **Mon mot de passe** : remplacer le mot de passe initial.
 2. **Paramètres du chantier** : dates (par défaut 23/11/2026 → 23/01/2027), jours fermés (25/12, 01/01),
    plafond par jour (50), seuil « presque plein » (45), assemblées, compétences, message d'accueil,
-   prise en compte ou non des mineurs dans le plafond, jours passés figés pour les volontaires (activé par défaut).
+   prise en compte ou non des mineurs dans le plafond, jours passés figés pour les volontaires (activé par défaut),
+   lien d'invitation de la communauté WhatsApp (WhatsApp → communauté → Inviter des membres → Copier le lien).
 3. **E-mails** (facultatif) : choisir le fournisseur, saisir les identifiants SMTP, **Envoyer un test**,
    puis activer. Sans e-mail, les liens d'invitation et de réinitialisation se copient et s'envoient
    sur WhatsApp.

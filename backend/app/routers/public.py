@@ -82,6 +82,7 @@ def config(
         "inscriptions_ouvertes": p.inscriptions_ouvertes,
         "message_accueil": p.message_accueil,
         "contact_whatsapp": p.contact_whatsapp,
+        "lien_communaute": p.lien_communaute,
         "competences": p.competences,
         "assemblees": p.assemblees,
         "jours": [d.isoformat() for d in jours_ouvres(p)],

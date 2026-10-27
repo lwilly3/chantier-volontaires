@@ -54,6 +54,7 @@ export interface ConfigPublique {
   jours: string[];
   /** Jours antérieurs non modifiables par les volontaires (null : tout est modifiable). */
   jours_figes_avant: string | null;
+  lien_communaute: string;
   remplissage: Record<string, { total: number; statut: StatutJour }>;
 }
 
@@ -179,6 +180,7 @@ export interface Parametres {
   code_acces: string;
   compter_mineurs_plafond: boolean;
   figer_jours_passes: boolean;
+  lien_communaute: string;
   presences_actif: boolean;
   presences_mdp_defini: boolean;
 }

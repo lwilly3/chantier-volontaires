@@ -184,6 +184,8 @@ class Parametres(Base):
     compter_mineurs_plafond: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
     # Les volontaires ne peuvent plus modifier les jours antérieurs à aujourd'hui (l'équipe le peut toujours)
     figer_jours_passes: Mapped[bool] = mapped_column(Boolean, default=True, server_default=sa_true())
+    # Lien d'invitation de la communauté WhatsApp du chantier (montré aux volontaires)
+    lien_communaute: Mapped[str] = mapped_column(String(300), default="", server_default="")
     # Lien dédié /presences pour saisir le nombre de présents (mot de passe haché)
     presences_actif: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
     presences_mdp_hash: Mapped[str] = mapped_column(String(200), default="", server_default="")

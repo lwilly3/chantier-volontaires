@@ -12,6 +12,7 @@ import Couverture from "./pages/admin/Couverture";
 import FicheVolontaire from "./pages/admin/FicheVolontaire";
 import Jeton from "./pages/admin/Jeton";
 import Journal from "./pages/admin/Journal";
+import Messages from "./pages/admin/Messages";
 import Layout from "./pages/admin/Layout";
 import Reglages from "./pages/admin/Reglages";
 import Volontaires from "./pages/admin/Volontaires";
@@ -44,6 +45,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="volontaires" element={<SiGestion><Volontaires /></SiGestion>} />
             <Route path="volontaires/:id" element={<SiGestion><FicheVolontaire /></SiGestion>} />
             <Route path="journal" element={<SiEquipe><Journal /></SiEquipe>} />
+            <Route path="messages" element={<SiGestion><Messages /></SiGestion>} />
             <Route path="analyses" element={<Analyses />} />
             <Route path="reglages" element={<Reglages />} />
           </Route>

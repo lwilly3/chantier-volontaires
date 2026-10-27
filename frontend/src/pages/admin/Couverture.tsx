@@ -250,6 +250,11 @@ function DetailJour({
                 {copie ? "Copié ✓" : "Copier le message WhatsApp"}
               </button>
             )}
+            {saisie && liste && liste.length > 0 && (
+              <Link className="bouton whatsapp" to={`/admin/messages?jour=${jour.jour}`}>
+                Écrire aux volontaires de ce jour
+              </Link>
+            )}
           </div>
           {!liste ? (
             <p className="chargement">Chargement…</p>
