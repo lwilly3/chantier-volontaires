@@ -128,15 +128,15 @@ export default function MentionsLegales() {
         <h2>12. Logiciel libre</h2>
         <p>
           L'application « Volontaires » est un logiciel libre (licence MIT) : son code est public et d'autres chantiers
-          peuvent l'utiliser librement. Code source :{" "}
+          peuvent l'utiliser librement :{" "}
           <a href={DEPOT_URL} target="_blank" rel="noreferrer">
-            {DEPOT_URL.replace("https://", "")}
+            voir le code source sur GitHub
           </a>
           {DEPOT_URL !== DEPOT_ORIGINE && (
             <>
-              {" "}(projet d'origine :{" "}
+              {" "}(
               <a href={DEPOT_ORIGINE} target="_blank" rel="noreferrer">
-                {DEPOT_ORIGINE.replace("https://", "")}
+                projet d'origine
               </a>
               )
             </>
