@@ -5,6 +5,7 @@ import { useSession } from "../../lib/session";
 import type { ConfigEmail, Parametres } from "../../lib/types";
 import AccesFormulaire from "./AccesFormulaire";
 import Comptes from "./Comptes";
+import FinProjet from "./FinProjet";
 import LienPresences from "./LienPresences";
 import MonRecrutement from "./MonRecrutement";
 import ReglagesEmail from "./ReglagesEmail";
@@ -30,6 +31,7 @@ export default function Reglages() {
       {responsable && email && <ReglagesEmail config={email} onChange={setEmail} />}
       {responsable && <ParametresChantier />}
       <MotDePasse />
+      {responsable && <FinProjet />}
     </div>
   );
 }

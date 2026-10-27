@@ -40,6 +40,13 @@ retient qui l'a reçu sur l'appareil). Chaque envoi est tracé dans le journal. 
 ses recrues. Le lien d'invitation de la communauté WhatsApp (Réglages → Chantier) est proposé aux
 volontaires après l'inscription et sur leur page personnelle.
 
+**Fin du projet** (Réglages → Fin du projet, responsable uniquement) : à la fin du chantier, effacer
+les données personnelles. *Anonymiser* (recommandé) supprime noms, numéros, remarques, liens personnels
+et journal en gardant les chiffres anonymes (couverture, présents, analyses) ; *Tout effacer* ne garde
+que les réglages. Options : supprimer les comptes de l'équipe, fermer les inscriptions, effacer la
+configuration e-mail. Confirmation par le mot « EFFACER » et le mot de passe ; export proposé avant.
+Penser à supprimer aussi les anciennes sauvegardes (R2). Désactivé dans la démo.
+
 **Jours passés figés** (Réglages, activé par défaut) : les volontaires ne peuvent plus modifier les
 jours antérieurs à aujourd'hui ; l'équipe peut toujours corriger depuis la fiche.
 

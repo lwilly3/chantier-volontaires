@@ -328,6 +328,17 @@ gunzip -c sauvegarde.sql.gz | psql "postgresql://volontaires:…@hote:5432/volon
 
 Export complémentaire, sans serveur : **Volontaires → Export Excel** (CSV) depuis l'application.
 
+### Fin du projet : effacer les données personnelles
+
+Une fois le chantier terminé : **Réglages → Fin du projet** (responsable).
+
+1. Télécharger l'export si une trace doit être conservée, et le ranger en lieu sûr.
+2. Choisir **Anonymiser** (les statistiques restent) ou **Tout effacer**.
+3. Confirmer avec le mot `EFFACER` et ton mot de passe.
+4. Supprimer les anciennes sauvegardes dans le bucket R2 `volontaires-backups` (elles contiennent encore
+   les données d'avant l'effacement) ou réduire leur conservation.
+5. Facultatif : arrêter l'application dans Dokploy et le projet Pages si l'outil ne sert plus.
+
 ## 8. Dépannage
 
 | Symptôme | Cause probable | Solution |

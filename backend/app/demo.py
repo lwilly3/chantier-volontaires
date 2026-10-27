@@ -224,7 +224,8 @@ BLOQUES = [
     ("PUT", "/api/admin/acces-formulaire"),
     ("PUT", "/api/admin/utilisateurs/"),
     ("DELETE", "/api/admin/utilisateurs/"),
-    ("POST", "/api/admin/utilisateurs/"),  # renvoi d'invitation, réinitialisation d'un compte démo
+    ("POST", "/api/admin/utilisateurs/"),
+    ("POST", "/api/admin/fin-de-projet"),  # renvoi d'invitation, réinitialisation d'un compte démo
 ]
 
 

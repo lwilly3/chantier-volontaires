@@ -592,3 +592,15 @@ a.badge { text-decoration: none; }
 .actions.haut { margin: 0 0 0.6rem; }
 .intro-reglages { margin: 0 0 0.6rem; }
 @media (max-width: 560px) { .entete-texte small { display: none; } }
+
+/* Fin du projet */
+.bouton.danger-plein { background: var(--danger); border-color: var(--danger); color: #fff; }
+.bouton.danger-plein:disabled { opacity: 0.45; }
+.fin-projet .bloc-fin { border-top: 1px solid var(--bordure); padding-top: 0.8rem; margin-top: 0.8rem; }
+.fin-projet .bloc-fin h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.choix-mode { display: flex; gap: 0.6rem; align-items: flex-start; border: 1px solid var(--bordure); border-radius: 10px; padding: 0.6rem 0.8rem; margin: 0 0 0.5rem; cursor: pointer; }
+.choix-mode.on { border-color: var(--primaire); background: color-mix(in srgb, var(--primaire) 6%, transparent); }
+.choix-mode input { margin-top: 0.25rem; width: auto; min-height: 0; }
+.choix-mode span { display: grid; gap: 0.15rem; }
+.choix-mode small { color: var(--texte-2); }
+#reglage-fin-projet { border-color: color-mix(in srgb, var(--danger) 40%, var(--bordure)); }
