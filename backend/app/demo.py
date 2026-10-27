@@ -144,7 +144,7 @@ def reinitialiser(db: Session) -> None:
             source = "adjoint"
         v = Volontaire(
             nom=nom,
-            telephone=f"+2376{90000000 + nb * 7919 % 9999999:08d}",
+            telephone=f"+999{nb + 1:08d}",  # indicatif inexistant : aucun vrai numéro
             assemblee=ASSEMBLEES_DEFAUT[nb % 2],
             competences=rnd.sample(COMPETENCES_DEFAUT, rnd.randint(1, 3)),
             nb_mineurs=1 if nb % 9 == 0 else (2 if nb % 23 == 0 else 0),

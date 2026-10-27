@@ -194,6 +194,9 @@ Même code que la production, lancé avec `DEMO=1` (API) et `VITE_DEMO=1` (front
   mot de passe oublié, configuration et test des e-mails, modification/suppression des comptes,
   code d'accès, mot de passe des présents.
 - Aucune base PostgreSQL : SQLite dans `/tmp` du conteneur, effacée à chaque redéploiement.
+- **Aucun vrai numéro de téléphone** : les faux volontaires ont des numéros en `+999` (indicatif attribué à
+  aucun pays, refusé par WhatsApp) et tout numéro saisi dans la démo est remplacé par un numéro fictif `+999…`
+  avant d'être enregistré. Les boutons WhatsApp ne peuvent donc joindre personne par erreur.
 
 ### 4.1 API de démo (Dokploy)
 

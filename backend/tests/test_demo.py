@@ -47,3 +47,22 @@ def test_connexion_par_role_et_garde_fous(client):  # noqa: F811
 
     # Le formulaire public fonctionne avec le code de démo
     assert c.post("/api/public/acces", json={"code": demo.CODE_ACCES}).status_code == 204
+
+
+def test_numeros_fictifs_en_demo(monkeypatch):
+    from app import services
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "demo", True)
+    a = services.normaliser_telephone("677 11 22 33")
+    assert a.startswith("+999") and len(a) == 12 and "677112233" not in a
+    assert services.normaliser_telephone("677112233") == a  # même saisie → même numéro (doublons détectés)
+    assert services.normaliser_telephone("+99900000007") == "+99900000007"  # déjà fictif : inchangé
+    monkeypatch.setattr(settings, "demo", False)
+    assert services.normaliser_telephone("677112233") == "+237677112233"
+
+
+def test_donnees_demo_sans_vrais_numeros(client):  # noqa: F811
+    with SessionLocal() as db:
+        demo.reinitialiser(db)
+        assert all(v.telephone.startswith("+999") for v in db.query(Volontaire))

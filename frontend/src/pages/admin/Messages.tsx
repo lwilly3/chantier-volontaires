@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../../lib/api";
 import { court, long } from "../../lib/dates";
 import { copier, lienPersonnel, lienWhatsApp } from "../../lib/liens";
+import { DEMO } from "../../lib/demo";
 import { useSession } from "../../lib/session";
 import type { ConfigPublique, Creneau } from "../../lib/types";
 
@@ -220,6 +221,12 @@ export default function Messages() {
 
   return (
     <div className="messages">
+      {DEMO && (
+        <p className="astuce-demo">
+          Démo : tous les numéros sont fictifs (+999…). WhatsApp s'ouvrira mais signalera un numéro invalide : aucun
+          message ne peut partir vers une vraie personne. La publication dans un groupe fonctionne normalement.
+        </p>
+      )}
       <section className="carte">
         <h2>1. À qui ?</h2>
         {equipe ? (

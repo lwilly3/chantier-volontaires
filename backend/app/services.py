@@ -1,4 +1,5 @@
 """Règles métier : dates du chantier, téléphones, disponibilités et couverture par jour."""
+import hashlib
 import re
 import secrets
 from collections import Counter, defaultdict
@@ -78,7 +79,18 @@ def normaliser_telephone(raw: str) -> str:
         digits = "237" + digits
     if not 8 <= len(digits) <= 15:
         raise HTTPException(422, "Numéro de téléphone invalide")
+    if settings.demo:
+        return numero_fictif(digits)
     return "+" + digits
+
+
+def numero_fictif(digits: str) -> str:
+    """Démo : aucun vrai numéro n'est enregistré. L'indicatif +999 n'est attribué à aucun pays,
+    WhatsApp le refuse : personne ne peut être contacté par erreur. Un même numéro saisi donne
+    toujours le même numéro fictif (la détection des doublons reste possible)."""
+    if digits.startswith("999") and len(digits) == 11:
+        return "+" + digits
+    return "+999" + str(int(hashlib.sha256(digits.encode()).hexdigest(), 16) % 10**8).zfill(8)
 
 
 def nouveau_token() -> str:

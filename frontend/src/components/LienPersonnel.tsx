@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DEMO } from "../lib/demo";
 import { copier, lienPersonnel, lienWhatsApp } from "../lib/liens";
 
 interface Props {
@@ -47,7 +48,7 @@ export default function LienPersonnel({ token, nom, telephone, monNumero, import
       <div className="actions">
         <a
           className="bouton whatsapp"
-          href={lienWhatsApp(texte, telephone ?? monNumero)}
+          href={lienWhatsApp(texte, DEMO ? undefined : telephone ?? monNumero)}
           target="_blank"
           rel="noreferrer"
           onClick={() => setGarde(true)}

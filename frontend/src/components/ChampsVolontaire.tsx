@@ -1,3 +1,4 @@
+import { DEMO } from "../lib/demo";
 import type { VolontaireForm } from "../lib/types";
 
 interface Props {
@@ -37,6 +38,12 @@ export default function ChampsVolontaire({ valeur, onChange, assemblees, compete
           onChange={(e) => maj("telephone", e.target.value)}
           placeholder="6XX XX XX XX"
         />
+        {DEMO && (
+          <small className="astuce-demo">
+            Démo : n'importe quel numéro convient. Il n'est pas enregistré : il est remplacé par un numéro fictif
+            (+999…) que WhatsApp ne peut pas joindre.
+          </small>
+        )}
       </label>
 
       <fieldset className="champ">
