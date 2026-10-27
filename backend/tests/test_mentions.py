@@ -15,8 +15,8 @@ def test_mentions_lisibles_sans_code(client):  # noqa: F811
     h = admin_headers(client)
     client.put("/api/admin/acces-formulaire", headers=h, json={"code_acces_actif": True, "code_acces": "CHANTIER26"})
     p = client.get("/api/admin/parametres", headers=h).json()
-    p.update(responsable_donnees="Willy", contact_whatsapp="+237 6 00 00 00 00")
+    p.update(responsable_donnees="Frère Martin", contact_whatsapp="+237 6 00 00 00 00")
     assert client.put("/api/admin/parametres", headers=h, json=p).status_code == 200
     m = client.get("/api/public/mentions").json()
-    assert m["responsable_donnees"] == "Willy" and m["contact"] == "+237 6 00 00 00 00"
+    assert m["responsable_donnees"] == "Frère Martin" and m["contact"] == "+237 6 00 00 00 00"
     assert client.get("/api/public/config").json()["acces"] is False  # le formulaire reste protégé

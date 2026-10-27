@@ -1,7 +1,11 @@
 # Installation et configuration
 
-Guide complet pour (ré)installer l'application **Service volontaires** : production et espace de
-démonstration, front et API. À suivre dans l'ordre ; chaque étape se termine par une vérification.
+Guide complet pour installer l'application **Volontaires** : production et espace de démonstration, front et
+API. À suivre dans l'ordre ; chaque étape se termine par une vérification.
+
+> Dans ce guide, remplace `exemple.org` par ton domaine, `<IP_DU_VPS>` par l'adresse IP de ton serveur et
+> `toi@exemple.org` par ton adresse e-mail. Les noms de projets (`volontaires`, `volontaires-demo`…) sont des
+> suggestions.
 
 Détail de toute la configuration Cloudflare (domaine, DNS, SSL, Pages, R2) : **[CLOUDFLARE.md](CLOUDFLARE.md)**.
 
@@ -27,8 +31,8 @@ Un seul dépôt Git, déployé quatre fois :
 
 | Élément | Production | Démonstration |
 |---|---|---|
-| **Front** (React, Cloudflare Pages) | projet `volontaires-kambo` → `https://volontaires.sallekambo.org` | projet `volontaires-demo` → `https://demo.sallekambo.org` |
-| **API** (FastAPI, Dokploy) | application de production (ex. `volontaires-api`) → `https://api.sallekambo.org` | application `volontaires-demo` → `https://api-demo.sallekambo.org` |
+| **Front** (React, Cloudflare Pages) | projet `volontaires` → `https://volontaires.exemple.org` | projet `volontaires-demo` → `https://demo.exemple.org` |
+| **API** (FastAPI, Dokploy) | application de production (ex. `volontaires-api`) → `https://api.exemple.org` | application `volontaires-demo` → `https://api-demo.exemple.org` |
 | **Base de données** | PostgreSQL (service Dokploy), **sauvegardée** | SQLite jetable dans le conteneur, recréée chaque nuit |
 | **Données** | réelles | ~90 volontaires fictifs |
 | **Connexion équipe** | e-mail + mot de passe | un clic par rôle |
@@ -36,22 +40,22 @@ Un seul dépôt Git, déployé quatre fois :
 ```
 navigateur ──► Cloudflare Pages (front statique)
      │
-     └──────► api.sallekambo.org ──► VPS Dokploy (conteneur FastAPI) ──► PostgreSQL
+     └──────► api.exemple.org ──► VPS Dokploy (conteneur FastAPI) ──► PostgreSQL
 ```
 
 - Le front est un site statique : il ne contient aucun secret. Son seul réglage est l'adresse de l'API,
   fixée **au moment du build** (`VITE_API_URL`).
 - L'API applique elle-même les migrations de base de données à chaque démarrage (`alembic upgrade head`).
-- Le domaine `sallekambo.org` est enregistré chez Cloudflare (registrar + DNS).
-- VPS : `51.91.157.54`.
+- Le domaine (ici `exemple.org`) est enregistré ou géré chez Cloudflare (registrar + DNS).
+- Le VPS (ici `<IP_DU_VPS>`) héberge Dokploy, l'API et la base.
 
 ## 2. Prérequis
 
 | Quoi | Où |
 |---|---|
-| Dépôt GitHub du projet (`lwilly3/…`) | GitHub, connecté à Dokploy et à Cloudflare Pages |
-| Compte Cloudflare avec le domaine `sallekambo.org` | dash.cloudflare.com |
-| VPS avec Dokploy installé | `http://51.91.157.54:3000` (ou l'adresse de ton panneau Dokploy) |
+| Ta copie du dépôt (*fork*) sur GitHub | GitHub, connecté à Dokploy et à Cloudflare Pages |
+| Compte Cloudflare avec le domaine `exemple.org` | dash.cloudflare.com |
+| VPS avec Dokploy installé | `http://<IP_DU_VPS>:3000` (ou l'adresse de ton panneau Dokploy) |
 | Un fournisseur d'e-mail SMTP (facultatif) | Gmail avec mot de passe d'application, Brevo, etc. |
 
 Générer un secret (à faire une fois par environnement, jamais le même pour la prod et la démo) :
@@ -86,17 +90,17 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
    ```env
    DATABASE_URL=<Internal Connection URL de l'étape 3.1>
    JWT_SECRET=<secret généré, 32 caractères minimum>
-   CORS_ORIGINS=https://volontaires.sallekambo.org
-   ADMIN_EMAIL=lwilly32@gmail.com
+   CORS_ORIGINS=https://volontaires.exemple.org
+   ADMIN_EMAIL=toi@exemple.org
    ADMIN_PASSWORD=<mot de passe du premier compte responsable>
-   ADMIN_NOM=Willy
+   ADMIN_NOM=Responsable volontaires
    ```
-5. **Domains** : hôte `api.sallekambo.org`, chemin `/`, **port du conteneur `8000`**,
+5. **Domains** : hôte `api.exemple.org`, chemin `/`, **port du conteneur `8000`**,
    HTTPS activé, certificat **Let's Encrypt**.
 6. **Deploy**. Les journaux doivent afficher `→ Migrations de la base de données` puis
    `Application startup complete`.
 
-**Vérification** : `https://api.sallekambo.org/api/health` → `{"status":"ok"}`
+**Vérification** : `https://api.exemple.org/api/health` → `{"status":"ok"}`
 (une fois le DNS de l'étape 3.3 en place).
 
 > - `ADMIN_*` ne sert qu'au **tout premier démarrage**, quand aucun compte n'existe. Ensuite, changer le
@@ -109,11 +113,11 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 
 > Détails des réglages : [CLOUDFLARE.md § 3–4](CLOUDFLARE.md#3-dns).
 
-Cloudflare → `sallekambo.org` → **DNS → Enregistrements → Ajouter** :
+Cloudflare → `exemple.org` → **DNS → Enregistrements → Ajouter** :
 
 | Type | Nom | Contenu | Proxy |
 |---|---|---|---|
-| A | `api` | `51.91.157.54` | **DNS uniquement (nuage gris)** |
+| A | `api` | `<IP_DU_VPS>` | **DNS uniquement (nuage gris)** |
 
 - Le nuage doit rester **gris** pour que Dokploy obtienne et renouvelle son certificat Let's Encrypt.
 - Si un jour tu passes en orange (proxy), règle **SSL/TLS → Mode : Full (strict)** pour éviter les
@@ -127,7 +131,7 @@ Cloudflare → `sallekambo.org` → **DNS → Enregistrements → Ajouter** :
 1. Cloudflare → **Workers & Pages → Créer**.
    ⚠️ L'écran propose d'abord un **Worker** : ne pas le déployer. Cliquer sur
    **« Vous cherchez Pages ? » → Importer un référentiel Git**.
-2. Choisir le dépôt, branche de production `main`, nom du projet `volontaires-kambo`.
+2. Choisir le dépôt, branche de production `main`, nom du projet `volontaires`.
 3. Paramètres de build :
 
    | Réglage | Valeur |
@@ -141,11 +145,11 @@ Cloudflare → `sallekambo.org` → **DNS → Enregistrements → Ajouter** :
 
    | Nom | Valeur |
    |---|---|
-   | `VITE_API_URL` | `https://api.sallekambo.org` |
+   | `VITE_API_URL` | `https://api.exemple.org` |
    | `NODE_VERSION` | `22` |
 
 5. **Enregistrer et déployer**.
-6. Projet → **Domaines personnalisés → Configurer un domaine** → `volontaires.sallekambo.org`.
+6. Projet → **Domaines personnalisés → Configurer un domaine** → `volontaires.exemple.org`.
    Cloudflare crée le CNAME tout seul ; le HTTPS est actif après quelques minutes.
 7. Conseillé : **Paramètres → Builds → Contrôle des branches** → désactiver les déploiements de
    prévisualisation (quota de 500 builds/mois).
@@ -153,11 +157,11 @@ Cloudflare → `sallekambo.org` → **DNS → Enregistrements → Ajouter** :
 > Les variables `VITE_*` sont lues **pendant le build**. Après une modification : **Déploiements →
 > Réessayer le déploiement** (ou pousser un commit).
 
-**Vérification** : `https://volontaires.sallekambo.org` affiche l'écran du code d'accès ou le formulaire.
+**Vérification** : `https://volontaires.exemple.org` affiche l'écran du code d'accès ou le formulaire.
 
 ### 3.5 Mise en service
 
-Se connecter sur `https://volontaires.sallekambo.org/admin/connexion` avec `ADMIN_EMAIL` /
+Se connecter sur `https://volontaires.exemple.org/admin/connexion` avec `ADMIN_EMAIL` /
 `ADMIN_PASSWORD`, puis dans **Réglages** :
 
 1. **Mon mot de passe** : remplacer le mot de passe initial.
@@ -175,7 +179,7 @@ Se connecter sur `https://volontaires.sallekambo.org/admin/connexion` avec `ADMI
 5. **Comptes** : inviter les adjoints, hommes clés, cuisine et comité (lien valable 72 h).
 6. **Lien des présents** : activer et définir le mot de passe donné aux personnes chargées de la saisie.
 7. Supprimer les éventuels volontaires de test (**Volontaires** → fiche → Supprimer).
-8. Diffuser `https://volontaires.sallekambo.org` et le code d'accès.
+8. Diffuser `https://volontaires.exemple.org` et le code d'accès.
 
 ---
 
@@ -188,7 +192,7 @@ Même code que la production, lancé avec `DEMO=1` (API) et `VITE_DEMO=1` (front
 - Connexion en un clic par rôle sur `/admin/connexion` ; code du formulaire `DEMO` ; mot de passe du lien
   des présents `demo` (rappelés à l'écran, avec un bouton qui les saisit).
 - Bandeau jaune sur toutes les pages (Formulaire · Équipe · Présents · Remettre à zéro).
-- Remise à zéro **au démarrage** et **chaque nuit vers 3 h** (heure de Douala) ; le responsable ou un
+- Remise à zéro **au démarrage** et **chaque nuit vers 3 h** (fuseau `TZ_CHANTIER`) ; le responsable ou un
   adjoint peut aussi la déclencher depuis le bandeau avant une présentation.
 - **Bloqué** (réponse « Désactivé dans l'espace de démonstration ») : changement de mot de passe,
   mot de passe oublié, configuration et test des e-mails, modification/suppression des comptes,
@@ -207,17 +211,17 @@ Même code que la production, lancé avec `DEMO=1` (API) et `VITE_DEMO=1` (front
    DEMO=1
    DATABASE_URL=sqlite:////tmp/demo.db
    JWT_SECRET=<nouveau secret, différent de la production>
-   CORS_ORIGINS=https://demo.sallekambo.org
+   CORS_ORIGINS=https://demo.exemple.org
    ```
    Pas de `ADMIN_*` : les comptes de démo sont créés automatiquement.
-4. **Domains** : `api-demo.sallekambo.org`, port `8000`, HTTPS Let's Encrypt.
+4. **Domains** : `api-demo.exemple.org`, port `8000`, HTTPS Let's Encrypt.
 5. **Deploy**.
 
 ### 4.2 DNS de démo
 
 | Type | Nom | Contenu | Proxy |
 |---|---|---|---|
-| A | `api-demo` | `51.91.157.54` | **DNS uniquement (nuage gris)** |
+| A | `api-demo` | `<IP_DU_VPS>` | **DNS uniquement (nuage gris)** |
 
 `demo` est créé automatiquement par Pages à l'étape suivante.
 
@@ -230,27 +234,27 @@ Nouveau projet Pages (même procédure qu'en 3.4, attention à l'écran Worker),
 | Commande de build | `npm run build` |
 | Répertoire de sortie | `dist` |
 | Répertoire racine | `frontend` |
-| `VITE_API_URL` | `https://api-demo.sallekambo.org` |
+| `VITE_API_URL` | `https://api-demo.exemple.org` |
 | `VITE_DEMO` | `1` |
 | `NODE_VERSION` | `22` |
-| Domaine personnalisé | `demo.sallekambo.org` |
+| Domaine personnalisé | `demo.exemple.org` |
 
 (modèle : `frontend/demo.env.example`)
 
 ### 4.4 Vérification
 
-- `https://api-demo.sallekambo.org/api/health` → `{"status":"ok"}`
-- `https://api-demo.sallekambo.org/api/demo/infos` → code `DEMO` et liste des rôles
-- `https://demo.sallekambo.org` → bandeau jaune + écran du code avec l'astuce « Le saisir pour moi »
-- `https://demo.sallekambo.org/admin/connexion` → boutons Responsable, Adjoint, Homme clé, Cuisine, Comité
+- `https://api-demo.exemple.org/api/health` → `{"status":"ok"}`
+- `https://api-demo.exemple.org/api/demo/infos` → code `DEMO` et liste des rôles
+- `https://demo.exemple.org` → bandeau jaune + écran du code avec l'astuce « Le saisir pour moi »
+- `https://demo.exemple.org/admin/connexion` → boutons Responsable, Adjoint, Homme clé, Cuisine, Comité
 
 Liens à partager :
 
 | Page | Adresse |
 |---|---|
-| Formulaire volontaire | `https://demo.sallekambo.org` (code `DEMO`) |
-| Espace équipe | `https://demo.sallekambo.org/admin/connexion` |
-| Saisie des présents | `https://demo.sallekambo.org/presences` (mot de passe `demo`) |
+| Formulaire volontaire | `https://demo.exemple.org` (code `DEMO`) |
+| Espace équipe | `https://demo.exemple.org/admin/connexion` |
+| Saisie des présents | `https://demo.exemple.org/presences` (mot de passe `demo`) |
 
 ---
 
@@ -262,7 +266,7 @@ Liens à partager :
 |---|---|---|---|
 | `DATABASE_URL` | oui | `sqlite:///./dev.db` | Base de données. `postgres://` et `postgresql://` sont acceptés. |
 | `JWT_SECRET` | oui | — | Signe les sessions et chiffre le mot de passe SMTP. 32 caractères min. sur PostgreSQL. |
-| `CORS_ORIGINS` | oui | `http://localhost:5173,https://volontaires.sallekambo.org` | Adresse(s) du front autorisée(s), séparées par des virgules. |
+| `CORS_ORIGINS` | oui | `http://localhost:5173` | Adresse(s) du front autorisée(s), séparées par des virgules. |
 | `ADMIN_EMAIL` | 1er démarrage | — | E-mail du premier compte responsable (créé s'il n'existe aucun compte). |
 | `ADMIN_PASSWORD` | 1er démarrage | — | Son mot de passe initial. |
 | `ADMIN_NOM` | non | `Responsable volontaires` | Son nom affiché. |
@@ -279,7 +283,7 @@ Liens à partager :
 
 | Variable | Production | Démo |
 |---|---|---|
-| `VITE_API_URL` | `https://api.sallekambo.org` | `https://api-demo.sallekambo.org` |
+| `VITE_API_URL` | `https://api.exemple.org` | `https://api-demo.exemple.org` |
 | `VITE_DEMO` | *(absente)* | `1` |
 | `NODE_VERSION` | `22` | `22` |
 
