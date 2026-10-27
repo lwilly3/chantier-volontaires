@@ -12,6 +12,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy import false as sa_false
+from sqlalchemy import true as sa_true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -181,6 +182,8 @@ class Parametres(Base):
     code_acces: Mapped[str] = mapped_column(String(40), default="", server_default="")
     # Les mineurs accompagnés occupent-ils une place dans le plafond de sécurité ?
     compter_mineurs_plafond: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
+    # Les volontaires ne peuvent plus modifier les jours antérieurs à aujourd'hui (l'équipe le peut toujours)
+    figer_jours_passes: Mapped[bool] = mapped_column(Boolean, default=True, server_default=sa_true())
     # Lien dédié /presences pour saisir le nombre de présents (mot de passe haché)
     presences_actif: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
     presences_mdp_hash: Mapped[str] = mapped_column(String(200), default="", server_default="")

@@ -546,3 +546,9 @@ a.badge { text-decoration: none; }
 .roles-demo .bouton { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 0.1rem; padding: 0.7rem 0.9rem; height: auto; }
 .roles-demo small { color: var(--texte-2); font-weight: 400; }
 .comptes li .panneau-lien { flex-basis: 100%; margin: 0.4rem 0 0.2rem; }
+
+/* Jours passés figés */
+.case.fige { cursor: not-allowed; opacity: 0.45; background: var(--surface-2); }
+.case.fige.pris { opacity: 0.6; }
+.case .cadenas { font-size: 0.6rem; line-height: 1; margin-top: 3px; }
+.semaine:disabled { opacity: 0.35; cursor: not-allowed; }

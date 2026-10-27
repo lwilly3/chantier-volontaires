@@ -124,6 +124,20 @@ function ParametresChantier() {
         </span>
       </label>
       <label className="case-a-cocher">
+        <input
+          type="checkbox"
+          checked={p.figer_jours_passes}
+          onChange={(e) => maj("figer_jours_passes", e.target.checked)}
+        />
+        <span>
+          Figer les jours passés pour les volontaires{" "}
+          <small>
+            (ils ne peuvent plus ajouter, retirer ou changer un jour antérieur à aujourd'hui ; l'équipe peut toujours
+            corriger depuis la fiche du volontaire)
+          </small>
+        </span>
+      </label>
+      <label className="case-a-cocher">
         <input type="checkbox" checked={p.inscriptions_ouvertes} onChange={(e) => maj("inscriptions_ouvertes", e.target.checked)} />
         <span>Inscriptions ouvertes</span>
       </label>

@@ -137,6 +137,7 @@ export default function Inscription() {
             onChange={(d) => setForm({ ...form, disponibilites: d })}
             remplissage={config.remplissage}
             plafond={config.plafond_jour}
+            figeAvant={config.jours_figes_avant}
           />
         </section>
 

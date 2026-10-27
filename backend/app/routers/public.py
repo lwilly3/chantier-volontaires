@@ -16,6 +16,7 @@ from ..services import (
     couverture,
     get_parametres,
     journaliser,
+    jours_figes_avant,
     jours_ouvres,
     normaliser_telephone,
     nouveau_token,
@@ -84,6 +85,8 @@ def config(
         "competences": p.competences,
         "assemblees": p.assemblees,
         "jours": [d.isoformat() for d in jours_ouvres(p)],
+        # Jours antérieurs non modifiables par les volontaires (null : tout est modifiable)
+        "jours_figes_avant": (lambda d: d.isoformat() if d else None)(jours_figes_avant(p)),
         "remplissage": {
             c["jour"]: {"total": c["total"], "statut": c["statut"]}
             for c in couverture(db, p, detail=False)
@@ -125,7 +128,7 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
         disponibilites=[],
     )
     db.add(v)
-    synchroniser_disponibilites(db, p, v, [d.model_dump() for d in data.disponibilites])
+    synchroniser_disponibilites(db, p, v, [d.model_dump() for d in data.disponibilites], jours_figes_avant(p))
     db.flush()
     journaliser(db, "volontaire", "inscription", v.id, f"{len(v.disponibilites)} jour(s)")
     db.commit()
@@ -161,7 +164,9 @@ def modifier_profil(token: str, data: VolontaireIn, db: Session = Depends(get_db
     v.nom, v.telephone, v.assemblee = data.nom, tel, data.assemblee
     v.competences = valider_profil(p, data.assemblee, data.competences)
     v.nb_mineurs, v.remarques = data.nb_mineurs, data.remarques.strip()
-    resume = synchroniser_disponibilites(db, p, v, [d.model_dump() for d in data.disponibilites])
+    resume = synchroniser_disponibilites(
+        db, p, v, [d.model_dump() for d in data.disponibilites], jours_figes_avant(p)
+    )
     journaliser(db, "volontaire", "modification", v.id, _resume_txt(resume))
     db.commit()
     return v

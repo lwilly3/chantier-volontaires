@@ -67,6 +67,7 @@ export default function Moi() {
             onChange={(d) => setForm({ ...form, disponibilites: d })}
             remplissage={config.remplissage}
             plafond={config.plafond_jour}
+            figeAvant={config.jours_figes_avant}
           />
         </section>
         <details className="carte">

@@ -94,21 +94,30 @@ def valider_profil(p: Parametres, assemblee: str, competences: list[str]) -> lis
 
 
 def synchroniser_disponibilites(
-    db: Session, p: Parametres, v: Volontaire, dispos: list[dict]
+    db: Session, p: Parametres, v: Volontaire, dispos: list[dict], figer_avant: date | None = None
 ) -> dict:
     """Remplace les disponibilités du volontaire en conservant l'ancienneté des jours
-    déjà choisis (priorité en cas de dépassement du plafond). Retourne un résumé."""
+    déjà choisis (priorité en cas de dépassement du plafond). Retourne un résumé.
+
+    figer_avant : les jours antérieurs à cette date restent tels qu'ils sont (ajouts, retraits
+    et changements de créneau demandés sur ces jours sont ignorés)."""
     valides = set(jours_ouvres(p))
     voulu: dict[date, str] = {}
     for item in dispos:
         jour, creneau = item["jour"], item["creneau"]
         if creneau not in CRENEAUX:
             raise HTTPException(422, f"Créneau invalide : {creneau}")
+        if figer_avant and jour < figer_avant:
+            continue
         if jour not in valides:
             raise HTTPException(422, f"Le {jour.isoformat()} n'est pas un jour de chantier")
         voulu[jour] = creneau
 
     existants = {d.jour: d for d in v.disponibilites}
+    if figer_avant:
+        for jour, d in existants.items():
+            if jour < figer_avant:
+                voulu[jour] = d.creneau
     ajoutes = retires = modifies = 0
     for jour, d in list(existants.items()):
         if jour not in voulu:
@@ -136,6 +145,11 @@ def statut_jour(total: int, p: Parametres) -> str:
     if total == 0:
         return "vide"
     return "ok"
+
+
+def jours_figes_avant(p: Parametres) -> date | None:
+    """Date à partir de laquelle un volontaire peut encore modifier ses jours (None = tout modifiable)."""
+    return aujourd_hui() if p.figer_jours_passes else None
 
 
 def poids(nb_mineurs: int | None, p: Parametres) -> int:

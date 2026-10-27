@@ -244,6 +244,7 @@ class ParametresIO(BaseModel):
     code_acces_actif: bool = False
     code_acces: str = ""
     compter_mineurs_plafond: bool = False
+    figer_jours_passes: bool = True
     # Lecture seule ici : modifié via PUT /api/admin/presences-acces
     presences_actif: bool = False
     presences_mdp_defini: bool = False

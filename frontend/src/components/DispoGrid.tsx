@@ -17,9 +17,12 @@ interface Props {
   onChange: (d: Dispo[]) => void;
   remplissage?: Record<string, { total: number; statut: StatutJour }>;
   plafond?: number;
+  /** Jours antérieurs à cette date (AAAA-MM-JJ) : affichés mais non modifiables. */
+  figeAvant?: string | null;
 }
 
-export default function DispoGrid({ jours, valeur, onChange, remplissage, plafond }: Props) {
+export default function DispoGrid({ jours, valeur, onChange, remplissage, plafond, figeAvant }: Props) {
+  const fige = (jour: string) => !!figeAvant && jour < figeAvant;
   const carte = useMemo(() => new Map(valeur.map((d) => [d.jour, d.creneau])), [valeur]);
   const grille = useMemo(() => semaines(jours), [jours]);
 
@@ -29,6 +32,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
   const [dernier, setDernier] = useState<{ jour: string; creneau: Creneau | null; n: number } | null>(null);
 
   const basculer = (jour: string) => {
+    if (fige(jour)) return;
     const m = new Map(carte);
     const suivant = CYCLE[(CYCLE.indexOf(m.get(jour) ?? null) + 1) % CYCLE.length];
     if (suivant) m.set(jour, suivant);
@@ -44,7 +48,9 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
     return () => clearTimeout(t);
   }, [dernier]);
 
-  const basculerGroupe = (groupe: string[]) => {
+  const basculerGroupe = (tous: string[]) => {
+    const groupe = tous.filter((j) => !fige(j));
+    if (groupe.length === 0) return;
     const m = new Map(carte);
     const tousPris = groupe.every((j) => m.has(j));
     for (const j of groupe) {
@@ -54,11 +60,11 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
     appliquer(m);
   };
 
-  const parJourSemaine = (n: number) => jours.filter((j) => jourSemaine(j) === n);
+  const parJourSemaine = (n: number) => jours.filter((j) => jourSemaine(j) === n && !fige(j));
 
   return (
     <div className="dispo">
-      <ModeEmploi avecRemplissage={Boolean(remplissage && plafond)} plafond={plafond} />
+      <ModeEmploi avecRemplissage={Boolean(remplissage && plafond)} plafond={plafond} avecFige={Boolean(figeAvant)} />
 
       <div className="raccourcis" role="group" aria-label="Raccourcis">
         {ENTETES_SEMAINE.map((nom, i) => {
@@ -70,8 +76,8 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
             </button>
           );
         })}
-        {valeur.length > 0 && (
-          <button type="button" className="puce attenue" onClick={() => onChange([])}>
+        {valeur.some((d) => !fige(d.jour)) && (
+          <button type="button" className="puce attenue" onClick={() => onChange(valeur.filter((d) => fige(d.jour)))}>
             Tout effacer
           </button>
         )}
@@ -85,7 +91,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
           <span aria-hidden />
         </div>
         {grille.map((s, idx) => {
-          const presents = s.cases.filter((c): c is string => !!c);
+          const presents = s.cases.filter((c): c is string => !!c && !fige(c));
           const semaineComplete = presents.length > 0 && presents.every((j) => carte.has(j));
           const mois = moisDeSemaine(s.cases);
           const afficherMois = idx === 0 || mois !== moisDeSemaine(grille[idx - 1].cases);
@@ -97,19 +103,23 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
                 if (!jour) return <span key={i} className="case vide" aria-hidden />;
                 const choix = carte.get(jour);
                 const r = remplissage?.[jour];
+                const passe = fige(jour);
                 return (
                   <button
                     key={jour}
                     type="button"
                     role="gridcell"
-                    className={`case ${choix ? `pris ${choix}` : ""}`}
+                    className={`case ${choix ? `pris ${choix}` : ""} ${passe ? "fige" : ""}`}
                     onClick={() => basculer(jour)}
+                    disabled={passe}
                     aria-pressed={!!choix}
-                    aria-label={`${court(jour)} : ${choix ? LIBELLE_CRENEAU[choix] : "non disponible"}${r ? `, ${r.total} inscrits` : ""}`}
+                    aria-label={`${court(jour)} : ${choix ? LIBELLE_CRENEAU[choix] : "non disponible"}${passe ? " (jour passé, non modifiable)" : r ? `, ${r.total} inscrits` : ""}`}
                   >
                     {choix && <span className="creneau">{ABREGE_CRENEAU[choix]}</span>}
                     <span className="num">{numeroJour(jour)}</span>
-                    {r && plafond ? (
+                    {passe ? (
+                      <span className="cadenas" aria-hidden>🔒</span>
+                    ) : r && plafond ? (
                       <span className={`charge ${r.statut === "ok" && r.total < plafond / 2 ? "vide" : r.statut}`} title={`${r.total} / ${plafond} inscrits`}>
                         {r.statut === "complet" ? "plein" : r.total}
                       </span>
@@ -120,6 +130,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
               <button
                 type="button"
                 className={`semaine ${semaineComplete ? "on" : ""}`}
+                disabled={presents.length === 0}
                 onClick={() => basculerGroupe(presents)}
                 title="Toute la semaine"
                 aria-label={`Toute la semaine du ${court(s.lundi)}`}
@@ -161,7 +172,7 @@ function retourChoix(jour: string, creneau: Creneau | null) {
 
 const CLE_GUIDE = "volontaires.guideGrilleFerme";
 
-function ModeEmploi({ avecRemplissage, plafond }: { avecRemplissage: boolean; plafond?: number }) {
+function ModeEmploi({ avecRemplissage, plafond, avecFige }: { avecRemplissage: boolean; plafond?: number; avecFige: boolean }) {
   const [ouvert, setOuvert] = useState(() => {
     try {
       return localStorage.getItem(CLE_GUIDE) !== "1";
@@ -217,6 +228,7 @@ function ModeEmploi({ avecRemplissage, plafond }: { avecRemplissage: boolean; pl
       <p>
         <span className="mini-plus">+</span> au bout d'une ligne : toute la semaine d'un coup.
       </p>
+      {avecFige && <p>🔒 Les jours passés sont grisés : ils ne peuvent plus être modifiés.</p>}
       {avecRemplissage && (
         <>
           <p>La pastille sous la date indique combien de volontaires sont déjà prévus ce jour-là (maximum {plafond}) :</p>
