@@ -5,6 +5,7 @@ import BandeauDemo from "./components/BandeauDemo";
 import { SessionProvider, useSession } from "./lib/session";
 import Inscription from "./pages/Inscription";
 import Moi from "./pages/Moi";
+import MentionsLegales from "./pages/MentionsLegales";
 import Presences from "./pages/Presences";
 import Analyses from "./pages/admin/Analyses";
 import Connexion from "./pages/admin/Connexion";
@@ -37,6 +38,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<Inscription />} />
           <Route path="/moi/:token" element={<Moi />} />
           <Route path="/presences" element={<Presences />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/admin/connexion" element={<Connexion />} />
           <Route path="/admin/invitation/:token" element={<Jeton />} />
           <Route path="/admin/reinitialiser/:token" element={<Jeton />} />

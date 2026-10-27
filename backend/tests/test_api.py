@@ -36,9 +36,10 @@ def payload(tel="677000001", jours=None, nom="Jean Mbarga"):
     return {
         "nom": nom,
         "telephone": tel,
-        "assemblee": "Kambo Pariso",
+        "assemblee": "Assemblée B",
         "competences": ["Maçonnerie", "Inconnue"],
         "majeur_confirme": True,
+        "consentement": True,
         "disponibilites": [{"jour": j, "creneau": "journee"} for j in (jours or ["2026-11-23", "2026-11-28"])],
     }
 

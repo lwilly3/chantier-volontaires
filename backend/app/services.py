@@ -27,7 +27,7 @@ COMPETENCES_DEFAUT = [
     "Nettoyage",
     "Transport / conduite",
 ]
-ASSEMBLEES_DEFAUT = ["Kambo Logement", "Kambo Pariso"]
+ASSEMBLEES_DEFAUT = ["Assemblée A", "Assemblée B"]  # à renommer dans Réglages
 
 
 def aujourd_hui() -> date:
@@ -39,7 +39,7 @@ def get_parametres(db: Session) -> Parametres:
     if p is None:
         p = Parametres(
             id=1,
-            nom_chantier="Rénovation de la Salle du Royaume — Kambo",
+            nom_chantier="Rénovation de la Salle du Royaume",
             date_debut=date(2026, 11, 23),
             date_fin=date(2027, 1, 23),
             plafond_jour=50,

@@ -5,7 +5,7 @@ from tests.test_relais import creer_relais
 URL = "/api/admin/messages/destinataires"
 
 
-def _inscrire(c, h, n, jours, assemblee="Kambo Pariso"):
+def _inscrire(c, h, n, jours, assemblee="Assemblée B"):
     corps = payload(tel=f"6900000{n:02d}", jours=jours, nom=f"Volontaire {n}")
     corps["assemblee"] = assemblee
     r = c.post("/api/admin/volontaires", headers=h, json=corps)
@@ -20,7 +20,7 @@ def test_cibles(client):  # noqa: F811
     assert client.put("/api/admin/parametres", headers=h, json=p).status_code == 200
     for n in range(3):
         _inscrire(client, h, n, ["2026-11-28"])
-    _inscrire(client, h, 9, ["2026-11-30"], assemblee="Kambo Logement")
+    _inscrire(client, h, 9, ["2026-11-30"], assemblee="Assemblée A")
 
     tous = client.get(URL, headers=h, params={"cible": "tous"}).json()
     assert len(tous) == 4 and {"telephone", "token", "nom"} <= set(tous[0])
@@ -31,7 +31,7 @@ def test_cibles(client):  # noqa: F811
     assert [d["nom"] for d in reserve] == ["Volontaire 2"] and reserve[0]["en_reserve"]
     assert len(client.get(URL, headers=h, params={"cible": "jour", "jour": "2026-11-28", "reserve": "tous"}).json()) == 3
 
-    kl = client.get(URL, headers=h, params={"cible": "assemblee", "assemblee": "Kambo Logement"}).json()
+    kl = client.get(URL, headers=h, params={"cible": "assemblee", "assemblee": "Assemblée A"}).json()
     assert [d["nom"] for d in kl] == ["Volontaire 9"]
 
     assert client.get(URL, headers=h, params={"cible": "jour"}).status_code == 422

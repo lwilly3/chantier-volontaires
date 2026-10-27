@@ -1,11 +1,15 @@
-# Chantier Kambo — Service volontaires
+# Volontaires
 
-Application de gestion des volontaires pour la rénovation de la Salle du Royaume
-(assemblées Kambo Logement et Kambo Pariso).
+Application web libre pour organiser les **volontaires d'un chantier de rénovation de Salle du Royaume** :
+inscription sans compte, disponibilités jour par jour, couverture et plafond de sécurité, réserve, rappels
+WhatsApp, prévision des repas, présents constatés et analyses, puis effacement des données à la fin du chantier.
 
-- **Front** : React + TypeScript (Vite) → Cloudflare Pages → `https://volontaires.sallekambo.org`
-- **API** : FastAPI + SQLAlchemy + Alembic → Dokploy → `https://api.sallekambo.org`
-- **Base** : PostgreSQL (service Dokploy)
+- **Front** : React + TypeScript (Vite), hébergé sur Cloudflare Pages
+- **API** : FastAPI + SQLAlchemy + Alembic, en conteneur (Dokploy)
+- **Base** : PostgreSQL
+
+> Projet indépendant et bénévole, **non lié à la Watch Tower Bible and Tract Society of Pennsylvania**.
+> Voir [NOTICE.md](NOTICE.md). Licence libre [MIT](LICENSE).
 
 ## Fonctionnalités (phase 1)
 
@@ -121,3 +125,13 @@ Mise à jour : `git push` sur `main` redéploie automatiquement les quatre servi
 
 Besoins par compétence d'après le planning du LDC, affectations aux équipes, gestion
 active de la réserve, pointage sur le chantier, vue cuisine dédiée (J+1 / J+2).
+
+## Licence et réutilisation
+
+Code publié sous licence **MIT** ([LICENSE](LICENSE)) : libre d'utilisation, de modification et de
+redistribution. Chaque équipe qui l'installe est responsable de ses données (voir [NOTICE.md](NOTICE.md)).
+Avant de rendre le dépôt public : [docs/PUBLICATION.md](docs/PUBLICATION.md).
+
+L'application affiche une page **Mentions légales et données personnelles** (`/mentions-legales`, lien en bas
+de chaque page) ; l'inscription demande l'accord explicite du volontaire. Renseigner le responsable des données
+et un contact dans **Réglages → Chantier**.

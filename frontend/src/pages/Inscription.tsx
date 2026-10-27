@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
 import CarteCommunaute from "../components/CarteCommunaute";
+import PiedDePage from "../components/PiedDePage";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
 import { DEMO, DEMO_CODE_ACCES } from "../lib/demo";
@@ -24,6 +25,7 @@ export default function Inscription() {
   const [config, setConfig] = useState<ConfigPublique | ConfigVerrouillee | null>(null);
   const [codeAcces, setCodeAcces] = useState(lireCodeAcces);
   const [majeur, setMajeur] = useState(false);
+  const [accord, setAccord] = useState(false);
   const [erreurChargement, setErreurChargement] = useState("");
   const [form, setForm] = useState<VolontaireForm>(VIDE);
   const [envoi, setEnvoi] = useState(false);
@@ -51,11 +53,12 @@ export default function Inscription() {
     if (!form.assemblee) return setErreur("Choisis ton assemblée.");
     if (form.disponibilites.length === 0) return setErreur("Sélectionne au moins un jour de disponibilité.");
     if (!majeur) return setErreur("Confirme que tu as 18 ans ou plus pour t'inscrire.");
+    if (!accord) return setErreur("Accepte l'utilisation de tes informations pour l'organisation du chantier.");
     setEnvoi(true);
     try {
       const v = await api<VolontairePublic>("/api/public/inscription", {
         method: "POST",
-        json: { ...form, recrutement: recrutement || null, code_acces: codeAcces || null, majeur_confirme: majeur },
+        json: { ...form, recrutement: recrutement || null, code_acces: codeAcces || null, majeur_confirme: majeur, consentement: accord },
       });
       memoriserMonToken(v.token);
       setInscrit(v);
@@ -154,6 +157,18 @@ export default function Inscription() {
               </small>
             </span>
           </label>
+          <label className="case-a-cocher">
+            <input type="checkbox" checked={accord} onChange={(e) => setAccord(e.target.checked)} />
+            <span>
+              <b>J'accepte que mes informations soient utilisées par le service volontaires pour l'organisation du chantier.</b>
+              <small>
+                {" "}Elles ne servent à rien d'autre et seront effacées à la fin du chantier.{" "}
+                <Link to="/mentions-legales" target="_blank" rel="noopener">
+                  Lire les mentions légales
+                </Link>
+              </small>
+            </span>
+          </label>
         </section>
 
         <div className="barre-envoi">
@@ -178,6 +193,7 @@ export function Ecran({ titre, children }: { titre?: string; children: React.Rea
         </div>
       </header>
       <main className="contenu">{children}</main>
+      <PiedDePage />
     </div>
   );
 }

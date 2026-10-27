@@ -59,6 +59,19 @@ def verifier_code(data: AccesIn, db: Session = Depends(get_db)):
         raise HTTPException(403, "Code incorrect. Vérifie-le auprès du service volontaires.")
 
 
+@router.get("/mentions")
+def mentions(db: Session = Depends(get_db)):
+    """Informations des mentions légales : lisibles sans code d'accès."""
+    p = get_parametres(db)
+    return {
+        "nom_chantier": p.nom_chantier,
+        "assemblees": p.assemblees,
+        "date_fin": p.date_fin,
+        "responsable_donnees": p.responsable_donnees,
+        "contact": p.contact_whatsapp,
+    }
+
+
 @router.get("/config")
 def config(
     code: str | None = None,
@@ -107,6 +120,12 @@ def inscription(data: InscriptionIn, db: Session = Depends(get_db)):
             422,
             "L'inscription est réservée aux personnes majeures. Un mineur peut venir accompagné de son "
             "parent ou tuteur : c'est l'adulte qui s'inscrit et l'indique dans son inscription.",
+        )
+    if not data.consentement:
+        raise HTTPException(
+            422,
+            "Pour t'inscrire, accepte que tes informations soient utilisées par le service volontaires "
+            "pour l'organisation du chantier (voir les mentions légales).",
         )
     tel = normaliser_telephone(data.telephone)
     if db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):

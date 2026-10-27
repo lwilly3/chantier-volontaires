@@ -1,4 +1,5 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
+import PiedDePage from "../../components/PiedDePage";
 import { LIBELLE_ROLE, useSession } from "../../lib/session";
 
 export default function Layout() {
@@ -34,6 +35,7 @@ export default function Layout() {
       <main className="admin-contenu">
         <Outlet />
       </main>
+      <PiedDePage />
     </div>
   );
 }

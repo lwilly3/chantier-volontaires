@@ -87,7 +87,7 @@ export default function AccesFormulaire() {
               value={code}
               maxLength={40}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="ex. KAMBO26"
+              placeholder="ex. CHANTIER26"
             />
             <button type="button" className="bouton" onClick={() => setCode(genererCode())}>Générer</button>
           </div>

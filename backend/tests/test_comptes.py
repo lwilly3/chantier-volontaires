@@ -48,7 +48,7 @@ def configurer_email(c, h, actif=True):
     return c.put("/api/admin/email", headers=h, json={
         "actif": actif, "fournisseur": "brevo", "hote": "smtp-relay.brevo.com", "port": 587,
         "securite": "starttls", "utilisateur": "compte@brevo", "mot_de_passe": "cle-smtp",
-        "expediteur_email": "volontaires@sallekambo.org", "expediteur_nom": "Service volontaires",
+        "expediteur_email": "volontaires@exemple.org", "expediteur_nom": "Service volontaires",
     })
 
 
@@ -171,7 +171,7 @@ def test_config_email_secret_et_test(client):  # noqa: F811
 
     # enregistrer sans mot de passe conserve l'ancien
     corps_sans_mdp = {**client.get("/api/admin/email", headers=h).json(), "mot_de_passe": ""}
-    corps_sans_mdp["expediteur_nom"] = "Volontaires Kambo"
+    corps_sans_mdp["expediteur_nom"] = "Volontaires Chantier"
     for k in ("mot_de_passe_defini", "dernier_test_ok_at", "url_site"):
         corps_sans_mdp.pop(k)
     assert client.put("/api/admin/email", headers=h, json=corps_sans_mdp).json()["mot_de_passe_defini"] is True

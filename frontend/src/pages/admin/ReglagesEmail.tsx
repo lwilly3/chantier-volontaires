@@ -26,7 +26,7 @@ const PREREGLAGES: Record<Fournisseur, Prereglage> = {
     aide: (
       <>
         Crée un compte sur brevo.com, puis <b>Paramètres → SMTP & API → Générer une clé SMTP</b>. Ajoute et
-        authentifie le domaine <b>sallekambo.org</b> dans <b>Expéditeurs, domaines et IP dédiées</b> : Brevo
+        authentifie le domaine <b>ton domaine</b> dans <b>Expéditeurs, domaines et IP dédiées</b> : Brevo
         te donne les enregistrements DNS à copier dans Cloudflare.
       </>
     ),
@@ -41,7 +41,7 @@ const PREREGLAGES: Record<Fournisseur, Prereglage> = {
     libelleMotDePasse: "Clé API (commence par re_)",
     aide: (
       <>
-        Crée un compte sur resend.com, ajoute le domaine <b>sallekambo.org</b> dans <b>Domains</b> (Resend peut
+        Crée un compte sur resend.com, ajoute le domaine <b>ton domaine</b> dans <b>Domains</b> (Resend peut
         configurer Cloudflare automatiquement), puis crée une clé dans <b>API Keys</b> avec l'accès « Sending ».
       </>
     ),
@@ -205,7 +205,7 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
               type="email"
               value={f.expediteur_email}
               onChange={(e) => setF({ ...f, expediteur_email: e.target.value })}
-              placeholder="volontaires@sallekambo.org"
+              placeholder="volontaires@exemple.org"
             />
           </label>
           <label className="champ">

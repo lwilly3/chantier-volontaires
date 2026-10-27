@@ -181,6 +181,7 @@ export interface Parametres {
   compter_mineurs_plafond: boolean;
   figer_jours_passes: boolean;
   lien_communaute: string;
+  responsable_donnees: string;
   presences_actif: boolean;
   presences_mdp_defini: boolean;
 }

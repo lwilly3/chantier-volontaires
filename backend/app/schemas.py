@@ -40,6 +40,8 @@ class InscriptionIn(VolontaireIn):
     code_acces: str | None = Field(default=None, max_length=40)
     # Les mineurs ne s'inscrivent pas eux-mêmes : le volontaire confirme être majeur
     majeur_confirme: bool = False
+    # Accord pour l'utilisation des informations par le service volontaires (mentions légales)
+    consentement: bool = False
 
 
 class AccesFormulaireIn(BaseModel):
@@ -246,6 +248,7 @@ class ParametresIO(BaseModel):
     compter_mineurs_plafond: bool = False
     figer_jours_passes: bool = True
     lien_communaute: str = Field(default="", max_length=300)
+    responsable_donnees: str = Field(default="", max_length=120)
     # Lecture seule ici : modifié via PUT /api/admin/presences-acces
     presences_actif: bool = False
     presences_mdp_defini: bool = False

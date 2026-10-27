@@ -28,19 +28,20 @@ from .models import (
 )
 from .ratelimit import limit
 from .security import create_token, equipe, hash_password
-from .services import ASSEMBLEES_DEFAUT, COMPETENCES_DEFAUT, aujourd_hui, jours_ouvres, nouveau_token
+from .services import COMPETENCES_DEFAUT, aujourd_hui, jours_ouvres, nouveau_token
 
 CODE_ACCES = "DEMO"
+ASSEMBLEES_DEMO = ["Assemblée Centre", "Assemblée Nord"]
 MDP_PRESENCES = "demo"
 MDP_COMPTES = "demo-chantier"
 
 COMPTES = [
     # id, rôle, nom, e-mail
-    (1, "responsable", "Responsable (démo)", "responsable@demo.sallekambo.org"),
-    (2, "adjoint", "Adjoint (démo)", "adjoint@demo.sallekambo.org"),
-    (3, "relais", "Homme clé (démo)", "hommecle@demo.sallekambo.org"),
-    (4, "cuisine", "Cuisine (démo)", "cuisine@demo.sallekambo.org"),
-    (5, "comite", "Comité (démo)", "comite@demo.sallekambo.org"),
+    (1, "responsable", "Responsable (démo)", "responsable@demo.volontaires.invalid"),
+    (2, "adjoint", "Adjoint (démo)", "adjoint@demo.volontaires.invalid"),
+    (3, "relais", "Homme clé (démo)", "hommecle@demo.volontaires.invalid"),
+    (4, "cuisine", "Cuisine (démo)", "cuisine@demo.volontaires.invalid"),
+    (5, "comite", "Comité (démo)", "comite@demo.volontaires.invalid"),
 ]
 LIBELLES = {
     "responsable": "Responsable",
@@ -87,16 +88,17 @@ def reinitialiser(db: Session) -> None:
         seuil_alerte=45,
         jours_fermes=[],
         competences=COMPETENCES_DEFAUT,
-        assemblees=ASSEMBLEES_DEFAUT,
+        assemblees=ASSEMBLEES_DEMO,
         inscriptions_ouvertes=True,
         message_accueil=(
             "Espace de démonstration : inscris-toi avec un faux nom pour essayer. "
             "Tout est effacé chaque nuit."
         ),
-        contact_whatsapp="",
         code_acces_actif=True,
         code_acces=CODE_ACCES,
         compter_mineurs_plafond=False,
+        responsable_donnees="Responsable du service volontaires (démo)",
+        contact_whatsapp="+999 0000 0000",
         presences_actif=True,
         presences_mdp_hash=hash_password(MDP_PRESENCES),
     )
@@ -145,7 +147,7 @@ def reinitialiser(db: Session) -> None:
         v = Volontaire(
             nom=nom,
             telephone=f"+999{nb + 1:08d}",  # indicatif inexistant : aucun vrai numéro
-            assemblee=ASSEMBLEES_DEFAUT[nb % 2],
+            assemblee=ASSEMBLEES_DEMO[nb % 2],
             competences=rnd.sample(COMPETENCES_DEFAUT, rnd.randint(1, 3)),
             nb_mineurs=1 if nb % 9 == 0 else (2 if nb % 23 == 0 else 0),
             remarques="Disponible seulement après 10 h" if nb % 17 == 0 else "",
@@ -258,7 +260,7 @@ def infos():
 def connexion(role: str, db: Session = Depends(get_db)):
     from .schemas import UtilisateurOut
 
-    user = db.query(Utilisateur).filter(Utilisateur.role == role, Utilisateur.email.like("%@demo.sallekambo.org")).first()
+    user = db.query(Utilisateur).filter(Utilisateur.role == role, Utilisateur.email.like("%@demo.volontaires.invalid")).first()
     if user is None:
         raise HTTPException(404, "Rôle inconnu")
     return {"token": create_token(user), "utilisateur": UtilisateurOut.model_validate(user)}

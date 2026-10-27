@@ -11,7 +11,7 @@ class Settings:
     jwt_secret: str = os.getenv("JWT_SECRET", "change-moi-en-production")
     jwt_hours: int = int(os.getenv("JWT_HOURS", "12"))
     cors_origins: list[str] = _list(
-        "CORS_ORIGINS", "http://localhost:5173,https://volontaires.sallekambo.org"
+        "CORS_ORIGINS", "http://localhost:5173"
     )
     # Compte responsable créé au premier démarrage s'il n'existe aucun utilisateur
     admin_email: str = os.getenv("ADMIN_EMAIL", "")
