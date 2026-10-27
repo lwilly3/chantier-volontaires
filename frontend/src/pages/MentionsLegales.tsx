@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { versDate } from "../lib/dates";
+import { DEPOT_ORIGINE, DEPOT_URL } from "../lib/projet";
 import { Ecran } from "./Inscription";
 
 interface Infos {
@@ -126,9 +127,26 @@ export default function MentionsLegales() {
 
         <h2>12. Logiciel libre</h2>
         <p>
-          Le code de l'application « Volontaires » est appelé à être publié en accès libre, sous licence libre, afin que
-          d'autres chantiers puissent l'utiliser. Chaque équipe qui l'installe est seule responsable de son utilisation et
-          des données qu'elle collecte.
+          L'application « Volontaires » est un logiciel libre (licence MIT) : son code est public et d'autres chantiers
+          peuvent l'utiliser librement. Code source :{" "}
+          <a href={DEPOT_URL} target="_blank" rel="noreferrer">
+            {DEPOT_URL.replace("https://", "")}
+          </a>
+          {DEPOT_URL !== DEPOT_ORIGINE && (
+            <>
+              {" "}(projet d'origine :{" "}
+              <a href={DEPOT_ORIGINE} target="_blank" rel="noreferrer">
+                {DEPOT_ORIGINE.replace("https://", "")}
+              </a>
+              )
+            </>
+          )}
+          .
+        </p>
+        <p>
+          Le code public ne contient <b>aucune donnée de volontaire</b> : tes informations restent uniquement dans la
+          base de données de ce chantier. Chaque équipe qui installe l'application est seule responsable de son
+          utilisation et des données qu'elle collecte.
         </p>
 
         <p className="aide">Dernière mise à jour : {VERSION_MENTIONS}.</p>

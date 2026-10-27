@@ -94,8 +94,8 @@ Modèles de variables : `backend/.env.example`, `backend/demo.env.example`, `fro
 `frontend/demo.env.example`. Les migrations de base s'appliquent automatiquement au démarrage de l'API.
 
 Après l'installation, dans **Réglages** : nom et dates du chantier, assemblées, compétences, plafond par
-jour, **responsable des données et contact** (affichés dans les mentions légales), code d'accès, comptes
-de l'équipe.
+jour, **responsable des données** (affiché dans les mentions légales), code d'accès, comptes de l'équipe.
+Facultatif : `VITE_DEPOT_URL` pour que le lien « Code source » pointe vers ta copie du dépôt.
 
 ## Notes techniques
 

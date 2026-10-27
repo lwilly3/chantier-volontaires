@@ -286,6 +286,7 @@ Liens à partager :
 | `VITE_API_URL` | `https://api.exemple.org` | `https://api-demo.exemple.org` |
 | `VITE_DEMO` | *(absente)* | `1` |
 | `NODE_VERSION` | `22` | `22` |
+| `VITE_DEPOT_URL` | *(facultatif)* adresse de ta copie du code, affichée dans le pied de page et les mentions légales (par défaut : le dépôt d'origine) | idem |
 
 ### Réglages faits dans l'application (pas de variable)
 

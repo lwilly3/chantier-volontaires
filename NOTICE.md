@@ -19,8 +19,10 @@ croire à une application officielle.
 Chaque équipe qui installe et utilise ce logiciel :
 
 - est **seule responsable** des données personnelles qu'elle collecte et de leur protection ;
-- doit indiquer dans **Réglages → Chantier** le responsable des données et un contact, affichés dans la page
-  « Mentions légales et données personnelles » de l'application ;
+- doit indiquer dans **Réglages → Chantier** le responsable des données, affiché dans la page
+  « Mentions légales et données personnelles » de l'application (aucun numéro de téléphone n'y est publié) ;
+- peut indiquer l'adresse de sa propre copie du code avec la variable `VITE_DEPOT_URL` (lien « Code source »
+  du pied de page) ; le lien vers le projet d'origine reste affiché dans les mentions légales ;
 - ne doit utiliser ces données **que pour l'organisation du chantier** ;
 - doit **effacer ou anonymiser les données à la fin du chantier** (Réglages → Fin du projet) et supprimer les
   anciennes sauvegardes ;
