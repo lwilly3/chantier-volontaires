@@ -16,6 +16,28 @@ avec Dokploy.
 
 ---
 
+## Aperçu
+
+<p align="center"><em>Captures réalisées avec des données entièrement fictives.</em></p>
+
+| Inscription d'un volontaire (téléphone) | Confirmation et lien personnel | Mentions légales |
+|:---:|:---:|:---:|
+| <img src="docs/captures/01-inscription-grille.png" alt="Grille des disponibilités avec mode d'emploi" width="240"> | <img src="docs/captures/02-confirmation-lien-personnel.png" alt="Confirmation d'inscription et lien personnel" width="240"> | <img src="docs/captures/08-mentions-legales.png" alt="Mentions légales et données personnelles" width="240"> |
+
+**Couverture du chantier** — un coup d'œil sur chaque jour, jusqu'au plafond de sécurité
+
+<img src="docs/captures/03-couverture.png" alt="Calendrier de couverture par jour" width="820">
+
+| Fiche d'un jour : repas, réserve, liste | Messages WhatsApp préparés |
+|:---:|:---:|
+| <img src="docs/captures/04-fiche-du-jour.png" alt="Fiche du jour" width="400"> | <img src="docs/captures/05-messages-whatsapp.png" alt="Messages WhatsApp" width="400"> |
+
+| Présents et analyses | Réglages |
+|:---:|:---:|
+| <img src="docs/captures/06-analyses.png" alt="Analyses de présence" width="400"> | <img src="docs/captures/07-reglages.png" alt="Réglages repliables" width="400"> |
+
+---
+
 ## Fonctionnalités
 
 ### Pour les volontaires (sans compte)
