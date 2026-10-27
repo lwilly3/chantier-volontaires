@@ -98,7 +98,6 @@ def reinitialiser(db: Session) -> None:
         code_acces=CODE_ACCES,
         compter_mineurs_plafond=False,
         responsable_donnees="Responsable du service volontaires (démo)",
-        contact_whatsapp="+999 0000 0000",
         presences_actif=True,
         presences_mdp_hash=hash_password(MDP_PRESENCES),
     )

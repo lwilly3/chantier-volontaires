@@ -9,7 +9,6 @@ interface Infos {
   assemblees: string[];
   date_fin: string;
   responsable_donnees: string;
-  contact: string;
 }
 
 export const VERSION_MENTIONS = "27 octobre 2026";
@@ -54,9 +53,12 @@ export default function MentionsLegales() {
 
         <h2>3. Qui est responsable de tes données</h2>
         <p>
-          <b>{responsable}</b>
-          {infos?.contact ? <> — contact : {infos.contact}</> : null}. C'est à cette personne que tu peux poser tes
-          questions ou adresser tes demandes.
+          <b>{responsable}</b>.
+        </p>
+        <p>
+          Pour toute question ou demande, adresse-toi au responsable du service volontaires ou à l'un de ses adjoints,
+          aux frères désignés dans ton assemblée pour aider les volontaires, ou à un ancien de ton assemblée qui
+          t'orientera.
         </p>
 
         <h2>4. Les informations demandées</h2>
@@ -106,7 +108,7 @@ export default function MentionsLegales() {
         <ul>
           <li>voir et modifier tes informations et tes jours à tout moment grâce à ton lien personnel ;</li>
           <li>te retirer d'un jour ou de tout le chantier ;</li>
-          <li>demander que tes informations soient effacées, en t'adressant au responsable (point 3).</li>
+          <li>demander que tes informations soient effacées, en t'adressant aux personnes indiquées au point 3.</li>
         </ul>
 
         <h2>10. Hébergement et sécurité</h2>

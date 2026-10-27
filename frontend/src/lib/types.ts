@@ -48,7 +48,6 @@ export interface ConfigPublique {
   plafond_jour: number;
   inscriptions_ouvertes: boolean;
   message_accueil: string;
-  contact_whatsapp: string;
   competences: string[];
   assemblees: string[];
   jours: string[];

@@ -126,20 +126,12 @@ function ParametresChantier() {
         <span>Message d'accueil du formulaire</span>
         <textarea rows={3} value={p.message_accueil} onChange={(e) => maj("message_accueil", e.target.value)} />
       </label>
-      <div className="champs deux">
-        <label className="champ">
-          <span>
-            Responsable des données <small>(nom affiché dans les mentions légales)</small>
-          </span>
-          <input maxLength={120} value={p.responsable_donnees} onChange={(e) => maj("responsable_donnees", e.target.value)} placeholder="ex. Frère Willy, service volontaires" />
-        </label>
-        <label className="champ">
-          <span>
-            Contact <small>(WhatsApp ou téléphone)</small>
-          </span>
-          <input maxLength={30} value={p.contact_whatsapp} onChange={(e) => maj("contact_whatsapp", e.target.value)} placeholder="+237 6XX XX XX XX" />
-        </label>
-      </div>
+      <label className="champ">
+        <span>
+          Responsable des données <small>(nom affiché dans les mentions légales — aucun numéro n'y est publié)</small>
+        </span>
+        <input maxLength={120} value={p.responsable_donnees} onChange={(e) => maj("responsable_donnees", e.target.value)} placeholder="ex. Responsable du service volontaires" />
+      </label>
       <label className="champ">
         <span>
           Lien d'invitation de la communauté WhatsApp <small>(facultatif)</small>

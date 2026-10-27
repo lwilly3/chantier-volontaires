@@ -68,7 +68,6 @@ def mentions(db: Session = Depends(get_db)):
         "assemblees": p.assemblees,
         "date_fin": p.date_fin,
         "responsable_donnees": p.responsable_donnees,
-        "contact": p.contact_whatsapp,
     }
 
 
@@ -94,7 +93,6 @@ def config(
         "plafond_jour": p.plafond_jour,
         "inscriptions_ouvertes": p.inscriptions_ouvertes,
         "message_accueil": p.message_accueil,
-        "contact_whatsapp": p.contact_whatsapp,
         "lien_communaute": p.lien_communaute,
         "competences": p.competences,
         "assemblees": p.assemblees,
