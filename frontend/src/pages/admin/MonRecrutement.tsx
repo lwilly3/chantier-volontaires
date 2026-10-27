@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Section from "../../components/Section";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
@@ -24,13 +25,15 @@ export default function MonRecrutement() {
     (code ? `\nCode d'accès : *${code}*` : "");
 
   return (
-    <section className="carte">
-      <div className="titre-section">
-        <h2>Mon lien de recrutement</h2>
-        <Link className="badge ok" to="/admin/volontaires?recrute_par=moi">
-          {data.nb_recrues} recrue{data.nb_recrues > 1 ? "s" : ""}
-        </Link>
-      </div>
+    <Section
+      id="recrutement"
+      titre="Mon lien de recrutement"
+      resume="À partager pour inviter des volontaires"
+      badge={<span className="badge ok">{data.nb_recrues} recrue{data.nb_recrues > 1 ? "s" : ""}</span>}
+    >
+      <p className="aide">
+        <Link to="/admin/volontaires?recrute_par=moi">Voir mes recrues →</Link>
+      </p>
       <p className="aide">
         Partage ce lien aux frères et sœurs que tu encourages à participer : leurs inscriptions te seront
         rattachées, et tu les retrouveras avec le filtre « Mes recrues ». Les volontaires que tu saisis
@@ -57,6 +60,6 @@ export default function MonRecrutement() {
           {copie ? "Copié ✓" : "Copier le message"}
         </button>
       </div>
-    </section>
+    </Section>
   );
 }

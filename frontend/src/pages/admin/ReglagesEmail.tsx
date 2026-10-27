@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import Section from "../../components/Section";
 import { api, ApiError } from "../../lib/api";
 import { useSession } from "../../lib/session";
 import type { ConfigEmail, Fournisseur } from "../../lib/types";
@@ -132,13 +133,16 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
   };
 
   return (
-    <section className="carte">
-      <div className="titre-section">
-        <h2>Envoi d'e-mails</h2>
+    <Section
+      id="email"
+      titre="Envoi d'e-mails"
+      resume="Invitations et mots de passe oubliés par e-mail"
+      badge={
         <span className={`badge ${config.actif ? (config.dernier_test_ok_at ? "ok" : "presque") : "vide"}`}>
           {config.actif ? (config.dernier_test_ok_at ? "Activé" : "Activé · non testé") : "Désactivé"}
         </span>
-      </div>
+      }
+    >
       <p className="aide">
         Facultatif. Une fois activé, les invitations et liens de réinitialisation partent automatiquement par
         e-mail, et « Mot de passe oublié ? » apparaît sur la page de connexion. Sans e-mail, tout reste possible
@@ -151,6 +155,7 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
           <span><b>Activer l'envoi d'e-mails</b></span>
         </label>
 
+        {f.actif && (<>
         <label className="champ">
           <span>Fournisseur</span>
           <select value={f.fournisseur} onChange={(e) => choisirFournisseur(e.target.value as Fournisseur)}>
@@ -209,12 +214,17 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
           </label>
         </div>
         <p className="aide">Les liens envoyés pointent vers <b>{config.url_site}</b>. Le mot de passe SMTP est stocké chiffré.</p>
+        </>)}
+        {!f.actif && config.actif && (
+          <p className="avertissement">Enregistre pour désactiver l'envoi d'e-mails. Les paramètres saisis sont conservés.</p>
+        )}
 
         {etat.erreur && <p className="alerte">{etat.erreur}</p>}
         {etat.ok && <p className="ok">{etat.ok}</p>}
         <button className="bouton principal" disabled={occupe || !modifie}>Enregistrer</button>
       </form>
 
+      {f.actif && (
       <div className="sous-carte">
         <h3>Tester l'envoi</h3>
         {config.dernier_test_ok_at ? (
@@ -232,6 +242,7 @@ export default function ReglagesEmail({ config, onChange }: { config: ConfigEmai
         {test.erreur && <p className="alerte">{test.erreur}</p>}
         {test.ok && <p className="ok">{test.ok}</p>}
       </div>
-    </section>
+      )}
+    </Section>
   );
 }

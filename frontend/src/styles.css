@@ -577,3 +577,18 @@ a.badge { text-decoration: none; }
 .carte.communaute { border: 1px solid color-mix(in srgb, var(--whatsapp) 45%, transparent); }
 .carte.communaute h3 { margin: 0 0 0.3rem; }
 .carte.communaute p { margin: 0 0 0.7rem; }
+
+/* Sections repliables (Réglages) */
+.section-repliable { padding: 0; overflow: hidden; }
+.entete-section { width: 100%; display: flex; align-items: center; gap: 0.7rem; padding: 0.9rem 1rem; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; min-height: 0; }
+.entete-section:hover { background: color-mix(in srgb, var(--primaire) 5%, transparent); }
+.entete-texte { flex: 1; display: grid; gap: 0.1rem; min-width: 0; }
+.entete-titre { font-weight: 700; font-size: 1.08rem; }
+.entete-texte small { color: var(--texte-2); font-size: 0.85rem; }
+.entete-section .badge { flex-shrink: 0; }
+.chevron { transition: transform 0.15s; color: var(--texte-2); font-size: 1.1rem; }
+.section-repliable.ouverte .chevron { transform: rotate(180deg); }
+.contenu-section { padding: 0 1rem 1rem; border-top: 1px solid var(--bordure); padding-top: 0.9rem; }
+.actions.haut { margin: 0 0 0.6rem; }
+.intro-reglages { margin: 0 0 0.6rem; }
+@media (max-width: 560px) { .entete-texte small { display: none; } }

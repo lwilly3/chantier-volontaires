@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import Section from "../../components/Section";
 import { api, ApiError } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
 import type { Parametres } from "../../lib/types";
@@ -56,11 +57,12 @@ export default function LienPresences() {
   };
 
   return (
-    <section className="carte">
-      <div className="titre-section">
-        <h2>Saisie des présences</h2>
-        <span className={`badge ${p.presences_actif ? "ok" : "vide"}`}>{p.presences_actif ? "Lien actif" : "Désactivé"}</span>
-      </div>
+    <Section
+      id="presences"
+      titre="Saisie des présences"
+      resume="Lien protégé pour indiquer les présents du jour"
+      badge={<span className={`badge ${p.presences_actif ? "ok" : "vide"}`}>{p.presences_actif ? "Lien actif" : "Désactivé"}</span>}
+    >
       <p className="aide">
         Facultatif. Un lien dédié, protégé par mot de passe, permet aux personnes désignées d'indiquer chaque jour
         le nombre approximatif de présents. Elles ne voient rien d'autre de l'application. Les responsables et
@@ -71,6 +73,7 @@ export default function LienPresences() {
           <input type="checkbox" checked={actif} onChange={(e) => setActif(e.target.checked)} />
           <span><b>Activer le lien de saisie</b></span>
         </label>
+        {actif && (
         <label className="champ">
           <span>
             {p.presences_mdp_defini ? "Nouveau mot de passe" : "Mot de passe"}{" "}
@@ -81,6 +84,7 @@ export default function LienPresences() {
             <button type="button" className="bouton" onClick={() => setMdp(genererMotDePasse())}>Générer</button>
           </div>
         </label>
+        )}
         {etat.erreur && <p className="alerte">{etat.erreur}</p>}
         {etat.ok && <p className="ok">{etat.ok}</p>}
         <button className="bouton principal" disabled={actif === p.presences_actif && !mdp}>Enregistrer</button>
@@ -112,6 +116,6 @@ export default function LienPresences() {
           </div>
         </div>
       )}
-    </section>
+    </Section>
   );
 }

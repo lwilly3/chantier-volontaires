@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type Session } from "../../lib/api";
+import Section from "../../components/Section";
 import { useSession } from "../../lib/session";
 import type { ConfigEmail, Parametres } from "../../lib/types";
 import AccesFormulaire from "./AccesFormulaire";
@@ -21,6 +22,7 @@ export default function Reglages() {
 
   return (
     <div className="reglages">
+      <p className="aide intro-reglages">Touche une section pour l'ouvrir ou la refermer.</p>
       {responsable && <AccesFormulaire />}
       {peut("responsable", "adjoint", "relais") && <MonRecrutement />}
       {responsable && <Comptes emailActif={!!email?.actif} />}
@@ -72,8 +74,18 @@ function ParametresChantier() {
   };
 
   return (
-    <form className="carte formulaire" onSubmit={enregistrer}>
-      <h2>Chantier</h2>
+    <Section
+      id="chantier"
+      titre="Chantier"
+      resume="Dates, plafond, assemblées, compétences, communauté"
+      badge={
+        <span className="badge ok">
+          {new Date(p.date_debut).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} →{" "}
+          {new Date(p.date_fin).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {p.plafond_jour}/jour
+        </span>
+      }
+    >
+    <form className="formulaire" onSubmit={enregistrer}>
       <label className="champ">
         <span>Nom du chantier</span>
         <input value={p.nom_chantier} onChange={(e) => maj("nom_chantier", e.target.value)} />
@@ -160,6 +172,7 @@ function ParametresChantier() {
       {etat.ok && <p className="ok">{etat.ok}</p>}
       <button className="bouton principal">Enregistrer les réglages</button>
     </form>
+    </Section>
   );
 }
 
@@ -183,8 +196,8 @@ function MotDePasse() {
   };
 
   return (
-    <form className="carte formulaire" onSubmit={envoyer}>
-      <h2>Mon mot de passe</h2>
+    <Section id="mdp" titre="Mon mot de passe" resume="Changer le mot de passe de ton compte">
+    <form className="formulaire" onSubmit={envoyer}>
       <label className="champ">
         <span>Mot de passe actuel</span>
         <input type="password" autoComplete="current-password" required value={ancien} onChange={(e) => setAncien(e.target.value)} />
@@ -197,5 +210,6 @@ function MotDePasse() {
       {etat.ok && <p className="ok">{etat.ok}</p>}
       <button className="bouton">Changer le mot de passe</button>
     </form>
+    </Section>
   );
 }

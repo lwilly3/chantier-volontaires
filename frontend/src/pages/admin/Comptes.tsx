@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import Section from "../../components/Section";
 import { api, ApiError } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
 import { LIBELLE_ROLE, useSession } from "../../lib/session";
@@ -75,9 +76,18 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
   };
 
   return (
-    <section className="carte">
-      <div className="titre-section">
-        <h2>Comptes de l'équipe</h2>
+    <Section
+      id="comptes"
+      titre="Comptes de l'équipe"
+      resume="Adjoints, hommes clés, cuisine, comité"
+      badge={
+        <span className={`badge ${comptes.some((u) => u.statut === "invite") ? "presque" : "ok"}`}>
+          {comptes.length} compte{comptes.length > 1 ? "s" : ""}
+          {comptes.some((u) => u.statut === "invite") ? ` · ${comptes.filter((u) => u.statut === "invite").length} invité(s)` : ""}
+        </span>
+      }
+    >
+      <div className="actions haut">
         <button
           className="bouton principal"
           onClick={() => {
@@ -238,7 +248,7 @@ export default function Comptes({ emailActif }: { emailActif: boolean }) {
           </li>
         ))}
       </ul>
-    </section>
+    </Section>
   );
 }
 

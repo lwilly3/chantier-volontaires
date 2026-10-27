@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import Section from "../../components/Section";
 import { api, ApiError } from "../../lib/api";
 import { copier, lienWhatsApp } from "../../lib/liens";
 import type { Parametres } from "../../lib/types";
@@ -58,13 +59,12 @@ export default function AccesFormulaire() {
   };
 
   return (
-    <section className="carte">
-      <div className="titre-section">
-        <h2>Accès au formulaire d'inscription</h2>
-        <span className={`badge ${enregistre.actif ? "ok" : "vide"}`}>
-          {enregistre.actif ? "Protégé par code" : "Accès libre"}
-        </span>
-      </div>
+    <Section
+      id="acces"
+      titre="Accès au formulaire d'inscription"
+      resume="Code demandé avant le formulaire"
+      badge={<span className={`badge ${enregistre.actif ? "ok" : "vide"}`}>{enregistre.actif ? "Protégé par code" : "Accès libre"}</span>}
+    >
       <p className="aide">
         Quand le code est activé, la page d'inscription demande ce code avant d'afficher le formulaire, y compris
         pour les liens de recrutement de l'équipe. Les volontaires déjà inscrits gardent l'accès à leur lien
@@ -76,6 +76,7 @@ export default function AccesFormulaire() {
           <input type="checkbox" checked={actif} onChange={(e) => setActif(e.target.checked)} />
           <span><b>Exiger un code d'accès</b></span>
         </label>
+        {actif && (<>
         <label className="champ">
           <span>Code <small>(4 caractères minimum, majuscules et espaces ignorés)</small></span>
           <div className="ligne-test">
@@ -95,6 +96,7 @@ export default function AccesFormulaire() {
           Changer le code n'affecte pas les volontaires déjà inscrits : seules les nouvelles inscriptions devront
           utiliser le nouveau code.
         </p>
+        </>)}
         {etat.erreur && <p className="alerte">{etat.erreur}</p>}
         {etat.ok && <p className="ok">{etat.ok}</p>}
         <button className="bouton principal" disabled={!modifie}>Enregistrer</button>
@@ -121,6 +123,6 @@ export default function AccesFormulaire() {
           </div>
         </div>
       )}
-    </section>
+    </Section>
   );
 }
