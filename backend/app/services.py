@@ -112,8 +112,12 @@ def synchroniser_disponibilites(
     déjà choisis (priorité en cas de dépassement du plafond). Retourne un résumé.
 
     figer_avant : les jours antérieurs à cette date restent tels qu'ils sont (ajouts, retraits
-    et changements de créneau demandés sur ces jours sont ignorés)."""
+    et changements de créneau demandés sur ces jours sont ignorés).
+
+    Un jour déjà enregistré qui n'est plus un jour de chantier (dates ou jours fermés modifiés
+    dans les réglages) est retiré sans erreur ; seul l'ajout d'un nouveau jour invalide est refusé."""
     valides = set(jours_ouvres(p))
+    deja = {d.jour for d in v.disponibilites}
     voulu: dict[date, str] = {}
     for item in dispos:
         jour, creneau = item["jour"], item["creneau"]
@@ -122,7 +126,9 @@ def synchroniser_disponibilites(
         if figer_avant and jour < figer_avant:
             continue
         if jour not in valides:
-            raise HTTPException(422, f"Le {jour.isoformat()} n'est pas un jour de chantier")
+            if jour in deja:
+                continue  # jour devenu hors chantier : retiré à l'enregistrement
+            raise HTTPException(422, f"Le {jour.strftime('%d/%m/%Y')} n'est pas un jour de chantier")
         voulu[jour] = creneau
 
     existants = {d.jour: d for d in v.disponibilites}

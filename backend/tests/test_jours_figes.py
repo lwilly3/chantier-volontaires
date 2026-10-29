@@ -66,3 +66,25 @@ def test_inscription_ignore_les_jours_passes(client, le_2_decembre):  # noqa: F8
     r = client.post("/api/public/inscription", json=payload(jours=["2026-11-24", "2026-12-05"]))
     assert r.status_code == 201, r.text
     assert [d["jour"] for d in r.json()["disponibilites"]] == ["2026-12-05"]
+
+
+def test_jour_devenu_hors_chantier_retire_sans_erreur(client):  # noqa: F811
+    """Les dates du chantier changent après l'inscription : l'enregistrement ne doit pas échouer."""
+    h = admin_headers(client)
+    v = client.post("/api/admin/volontaires", headers=h, json=payload(jours=["2026-11-28", "2026-12-05"])).json()
+    p = client.get("/api/admin/parametres", headers=h).json()
+    p.update(date_debut="2026-12-01")  # le 28/11 n'est plus un jour de chantier
+    assert client.put("/api/admin/parametres", headers=h, json=p).status_code == 200
+
+    # côté équipe : on renvoie la fiche telle quelle (avec l'ancien jour)
+    corps = client.get(f"/api/admin/volontaires/{v['id']}", headers=h).json()
+    r = client.put(f"/api/admin/volontaires/{v['id']}", headers=h, json=corps)
+    assert r.status_code == 200, r.text
+    assert [d["jour"] for d in r.json()["disponibilites"]] == ["2026-12-05"]
+
+    # côté volontaire : même chose avec son lien personnel
+    v2 = client.post("/api/admin/volontaires", headers=h, json=payload(tel="690000077", jours=["2026-12-05"])).json()
+    moi = client.get(f"/api/public/moi/{v2['token']}").json()
+    moi["disponibilites"].append({"jour": "2026-11-27", "creneau": "journee"})  # nouveau jour invalide : refusé
+    r = client.put(f"/api/public/moi/{v2['token']}", json=moi)
+    assert r.status_code == 422 and "27/11/2026" in r.json()["detail"]

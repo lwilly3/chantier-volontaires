@@ -25,6 +25,12 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
   const fige = (jour: string) => !!figeAvant && jour < figeAvant;
   const carte = useMemo(() => new Map(valeur.map((d) => [d.jour, d.creneau])), [valeur]);
   const grille = useMemo(() => semaines(jours), [jours]);
+  // Jours choisis autrefois mais qui ne font plus partie du chantier (dates modifiées dans les réglages)
+  const horsChantier = useMemo(() => {
+    const ensemble = new Set(jours);
+    return valeur.filter((d) => !ensemble.has(d.jour));
+  }, [jours, valeur]);
+  const nbChoisis = valeur.length - horsChantier.length;
 
   const appliquer = (m: Map<string, Creneau>) =>
     onChange([...m.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([jour, creneau]) => ({ jour, creneau })));
@@ -147,8 +153,15 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
         {dernier && <p key={dernier.n}>{retourChoix(dernier.jour, dernier.creneau)}</p>}
       </div>
 
+      {horsChantier.length > 0 && (
+        <p className="avertissement">
+          {horsChantier.length === 1 ? "1 jour choisi auparavant ne fait" : `${horsChantier.length} jours choisis auparavant ne font`}{" "}
+          plus partie du chantier (les dates ont changé) : {horsChantier.map((d) => court(d.jour)).join(", ")}.{" "}
+          {horsChantier.length === 1 ? "Il sera retiré" : "Ils seront retirés"} à l'enregistrement.
+        </p>
+      )}
       <p className="total-jours">
-        <b>{valeur.length}</b> jour{valeur.length > 1 ? "s" : ""} sélectionné{valeur.length > 1 ? "s" : ""}
+        <b>{nbChoisis}</b> jour{nbChoisis > 1 ? "s" : ""} sélectionné{nbChoisis > 1 ? "s" : ""}
       </p>
     </div>
   );
