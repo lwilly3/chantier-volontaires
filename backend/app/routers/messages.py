@@ -15,11 +15,11 @@ from sqlalchemy.orm import Session, selectinload
 from ..db import get_db
 from ..models import Utilisateur, Volontaire
 from ..security import gestion
-from ..services import get_parametres, journaliser, jours_ouvres, volontaires_du_jour
+from ..services import etat_jours_volontaires, get_parametres, journaliser, jours_ouvres, volontaires_du_jour
 
 router = APIRouter(prefix="/api/admin/messages", tags=["messages"])
 
-Cible = Literal["tous", "jour", "assemblee", "recrues"]
+Cible = Literal["tous", "jour", "assemblee", "recrues", "hors_dates"]
 Reserve = Literal["attendus", "reserve", "tous"]
 
 
@@ -51,7 +51,8 @@ def destinataires(
     - tous : tous les volontaires actifs ;
     - jour : ceux inscrits ce jour-là (attendus, réserve ou tous) ;
     - assemblee : ceux d'une assemblée ;
-    - recrues : ceux recrutés par la personne connectée.
+    - recrues : ceux recrutés par la personne connectée ;
+    - hors_dates : ceux dont des jours sont hors des dates du chantier, ou qui n'ont plus aucun jour.
     Un homme clé ne peut viser que ses propres recrues."""
     if moi.role == "relais" and cible != "recrues":
         raise HTTPException(403, "Un homme clé peut écrire uniquement à ses recrues")
@@ -75,7 +76,14 @@ def destinataires(
         ]
 
     q = select(Volontaire).where(Volontaire.actif.is_(True)).options(selectinload(Volontaire.disponibilites))
-    if cible == "assemblee":
+    if cible == "hors_dates":
+        # jours hors des dates du chantier, ou plus aucun jour dans ces dates : à prévenir
+        etat = etat_jours_volontaires(db, set(jours_ouvres(p)))
+        ids = etat["hors_dates"] | etat["sans_jour"]
+        if not ids:
+            return []
+        q = q.where(Volontaire.id.in_(ids))
+    elif cible == "assemblee":
         if not assemblee:
             raise HTTPException(422, "Choisis une assemblée")
         q = q.where(Volontaire.assemblee == assemblee)

@@ -165,6 +165,19 @@ def statut_jour(total: int, p: Parametres) -> str:
     return "ok"
 
 
+def etat_jours_volontaires(db: Session, valides: set[date]) -> dict[str, set[int]]:
+    """Pour les volontaires actifs, par rapport à un ensemble de jours de chantier :
+    - hors_dates : ceux qui ont au moins un jour enregistré hors de ces jours ;
+    - sans_jour : ceux qui n'ont aucun jour parmi ces jours (y compris aucun jour du tout)."""
+    actifs = set(db.scalars(select(Volontaire.id).where(Volontaire.actif.is_(True))))
+    dans, hors = set(), set()
+    for vid, jour in db.execute(
+        select(Disponibilite.volontaire_id, Disponibilite.jour).join(Volontaire).where(Volontaire.actif.is_(True))
+    ):
+        (dans if jour in valides else hors).add(vid)
+    return {"hors_dates": hors, "sans_jour": actifs - dans}
+
+
 def jours_figes_avant(p: Parametres) -> date | None:
     """Date à partir de laquelle un volontaire peut encore modifier ses jours (None = tout modifiable)."""
     return aujourd_hui() if p.figer_jours_passes else None

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError, type Session } from "../../lib/api";
+import { Link } from "react-router-dom";
 import Section from "../../components/Section";
 import { useSession } from "../../lib/session";
 import type { ConfigEmail, Parametres } from "../../lib/types";
@@ -36,14 +37,27 @@ export default function Reglages() {
   );
 }
 
+interface Impact {
+  jours_retires: number;
+  jours_ajoutes: number;
+  volontaires_concernes: number;
+  inscriptions_retirees: number;
+  devenus_sans_jour: number;
+}
+
+const cleDates = (debut: string, fin: string, fermes: string[]) => `${debut}|${fin}|${[...fermes].sort().join(",")}`;
+
 function ParametresChantier() {
   const [p, setP] = useState<Parametres | null>(null);
   const [texte, setTexte] = useState({ competences: "", assemblees: "", jours_fermes: "" });
-  const [etat, setEtat] = useState({ erreur: "", ok: "" });
+  const [etat, setEtat] = useState<{ erreur: string; ok: string; prevenir?: boolean }>({ erreur: "", ok: "" });
+  const [datesEnregistrees, setDatesEnregistrees] = useState("");
+  const [impact, setImpact] = useState<Impact | null>(null);
 
   useEffect(() => {
     api<Parametres>("/api/admin/parametres").then((d) => {
       setP(d);
+      setDatesEnregistrees(cleDates(d.date_debut, d.date_fin, d.jours_fermes));
       setTexte({
         competences: d.competences.join("\n"),
         assemblees: d.assemblees.join("\n"),
@@ -55,24 +69,44 @@ function ParametresChantier() {
   if (!p) return <p className="chargement">Chargement…</p>;
   const maj = <K extends keyof Parametres>(k: K, v: Parametres[K]) => setP({ ...p, [k]: v });
 
-  const enregistrer = async (e: FormEvent) => {
-    e.preventDefault();
-    setEtat({ erreur: "", ok: "" });
+  const corps = () => ({
+    ...p,
+    competences: lignes(texte.competences),
+    assemblees: lignes(texte.assemblees),
+    jours_fermes: lignes(texte.jours_fermes),
+  });
+
+  const sauver = async (imp: Impact | null) => {
     try {
-      const d = await api<Parametres>("/api/admin/parametres", {
-        method: "PUT",
-        json: {
-          ...p,
-          competences: lignes(texte.competences),
-          assemblees: lignes(texte.assemblees),
-          jours_fermes: lignes(texte.jours_fermes),
-        },
-      });
+      const d = await api<Parametres>("/api/admin/parametres", { method: "PUT", json: corps() });
       setP(d);
-      setEtat({ erreur: "", ok: "Réglages enregistrés." });
+      setDatesEnregistrees(cleDates(d.date_debut, d.date_fin, d.jours_fermes));
+      setImpact(null);
+      const prevenir = !!imp && (imp.volontaires_concernes > 0 || imp.devenus_sans_jour > 0);
+      setEtat({ erreur: "", ok: "Réglages enregistrés.", prevenir });
     } catch (err) {
       setEtat({ erreur: (err as ApiError).message, ok: "" });
     }
+  };
+
+  const enregistrer = async (e: FormEvent) => {
+    e.preventDefault();
+    setEtat({ erreur: "", ok: "" });
+    const c = corps();
+    if (cleDates(c.date_debut, c.date_fin, c.jours_fermes) !== datesEnregistrees) {
+      // Dates ou jours sans chantier modifiés : on montre d'abord les conséquences
+      try {
+        const imp = await api<Impact>("/api/admin/parametres/impact", { method: "POST", json: c });
+        if (imp.volontaires_concernes > 0 || imp.devenus_sans_jour > 0) {
+          setImpact(imp);
+          return;
+        }
+        return sauver(imp);
+      } catch (err) {
+        return setEtat({ erreur: (err as ApiError).message, ok: "" });
+      }
+    }
+    return sauver(null);
   };
 
   return (
@@ -188,8 +222,61 @@ function ParametresChantier() {
         </span>
       </label>
       {etat.erreur && <p className="alerte">{etat.erreur}</p>}
-      {etat.ok && <p className="ok">{etat.ok}</p>}
-      <button className="bouton principal">Enregistrer les réglages</button>
+      {etat.ok && (
+        <p className="ok">
+          {etat.ok}
+          {etat.prevenir && (
+            <>
+              {" "}
+              <Link to="/admin/messages?cible=hors_dates">Prévenir les volontaires concernés →</Link>
+            </>
+          )}
+        </p>
+      )}
+      {impact ? (
+        <div className="impact-dates">
+          <p>
+            <b>Ce changement de dates concerne des volontaires déjà inscrits :</b>
+          </p>
+          <ul>
+            {impact.volontaires_concernes > 0 && (
+              <li>
+                {impact.volontaires_concernes} volontaire{impact.volontaires_concernes > 1 ? "s ont" : " a"} des jours
+                hors des nouvelles dates ({impact.inscriptions_retirees} inscription
+                {impact.inscriptions_retirees > 1 ? "s" : ""} sur des jours qui ne comptent plus) ;
+              </li>
+            )}
+            {impact.devenus_sans_jour > 0 && (
+              <li>
+                <b>
+                  {impact.devenus_sans_jour} n'{impact.devenus_sans_jour > 1 ? "auront" : "aura"} plus aucun jour
+                </b>{" "}
+                dans le chantier ;
+              </li>
+            )}
+            {impact.jours_ajoutes > 0 && (
+              <li>
+                {impact.jours_ajoutes} nouveau{impact.jours_ajoutes > 1 ? "x" : ""} jour{impact.jours_ajoutes > 1 ? "s" : ""} de
+                chantier, encore vide{impact.jours_ajoutes > 1 ? "s" : ""}.
+              </li>
+            )}
+          </ul>
+          <p className="aide">
+            Rien n'est effacé tout de suite : ces jours ne comptent plus, et disparaîtront quand la fiche sera enregistrée.
+            Après l'enregistrement, tu pourras prévenir ces volontaires depuis Messages.
+          </p>
+          <div className="actions">
+            <button type="button" className="bouton principal" onClick={() => sauver(impact)}>
+              Enregistrer quand même
+            </button>
+            <button type="button" className="bouton discret" onClick={() => setImpact(null)}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button className="bouton principal">Enregistrer les réglages</button>
+      )}
     </form>
     </Section>
   );

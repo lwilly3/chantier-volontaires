@@ -2,6 +2,7 @@
 import csv
 import io
 import secrets
+from types import SimpleNamespace
 from datetime import date
 from typing import Literal
 
@@ -31,6 +32,8 @@ from ..schemas import (
 from ..security import definir_mot_de_passe, equipe, gestion, hash_password, responsable, tous_roles
 from .presences import analyses, presences_par_jour
 from ..services import (
+    etat_jours_volontaires,
+    jours_ouvres,
     aujourd_hui,
     charger_volontaire,
     couverture,
@@ -66,11 +69,9 @@ def get_couverture(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_
         j["probables"] = prob["probables"] if prob else None
         j["repas_probables"] = prob["repas_probables"] if prob else None
     actifs = db.scalar(select(func.count()).select_from(Volontaire).where(Volontaire.actif.is_(True)))
-    sans_dispo = db.scalar(
-        select(func.count())
-        .select_from(Volontaire)
-        .where(Volontaire.actif.is_(True), ~Volontaire.disponibilites.any())
-    )
+    # Seuls les jours compris dans les dates du chantier comptent
+    etat = etat_jours_volontaires(db, set(jours_ouvres(p)))
+    sans_dispo = len(etat["sans_jour"])
     par_assemblee = dict(
         db.execute(
             select(Volontaire.assemblee, func.count())
@@ -89,6 +90,8 @@ def get_couverture(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_
         "resume": {
             "volontaires": actifs,
             "sans_disponibilite": sans_dispo,
+            # volontaires ayant encore des jours hors des dates (dates ou jours fermés modifiés)
+            "hors_dates": len(etat["hors_dates"]),
             "par_assemblee": par_assemblee,
             "jours_chantier": len(jours),
             "jours_vides": sum(1 for t in totaux if t == 0),
@@ -226,15 +229,17 @@ def export_csv(db: Session = Depends(get_db), _: Utilisateur = Depends(equipe)):
     buf.write("﻿")  # BOM : Excel ouvre correctement les accents
     w = csv.writer(buf, delimiter=";")
     w.writerow(["Nom", "Téléphone", "Assemblée", "Compétences", "Mineurs accompagnés", "Actif", "Nb jours", "Jours", "Remarques"])
+    valides = set(jours_ouvres(p))  # seuls les jours compris dans les dates du chantier
     for v in vols:
+        dans = [d for d in v.disponibilites if d.jour in valides]
         jours = ", ".join(
             f"{d.jour.strftime('%d/%m')}" + ("" if d.creneau == "journee" else f" ({CRENEAU_LIBELLE[d.creneau]})")
-            for d in v.disponibilites
+            for d in dans
         )
         w.writerow([
             v.nom, v.telephone, v.assemblee, ", ".join(v.competences or []),
             v.nb_mineurs or "", "Oui" if v.actif else "Non",
-            len(v.disponibilites), jours, v.remarques,
+            len(dans), jours, v.remarques,
         ])
     buf.seek(0)
     nom = f"volontaires-{date.today().isoformat()}.csv"
@@ -268,6 +273,29 @@ def journal(
 @router.get("/parametres", response_model=ParametresIO)
 def lire_parametres(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_roles)):
     return get_parametres(db)
+
+
+@router.post("/parametres/impact")
+def impact_parametres(data: ParametresIO, db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
+    """Avant d'enregistrer de nouvelles dates (ou jours fermés) : combien de volontaires sont concernés."""
+    p = get_parametres(db)
+    avant = set(jours_ouvres(p))
+    apres = set(jours_ouvres(SimpleNamespace(date_debut=data.date_debut, date_fin=data.date_fin,
+                                             jours_fermes=data.jours_fermes)))
+    e_avant = etat_jours_volontaires(db, avant)
+    e_apres = etat_jours_volontaires(db, apres)
+    perdus = sorted(avant - apres)
+    nb_jours_perdus = db.scalar(
+        select(func.count()).select_from(Disponibilite).join(Volontaire)
+        .where(Volontaire.actif.is_(True), Disponibilite.jour.in_(perdus))
+    ) if perdus else 0
+    return {
+        "jours_retires": len(perdus),
+        "jours_ajoutes": len(apres - avant),
+        "volontaires_concernes": len(e_apres["hors_dates"] - e_avant["hors_dates"]),
+        "inscriptions_retirees": nb_jours_perdus,
+        "devenus_sans_jour": len(e_apres["sans_jour"] - e_avant["sans_jour"]),
+    }
 
 
 @router.put("/parametres", response_model=ParametresIO)

@@ -48,6 +48,7 @@ export default function Couverture() {
   return (
     <div className="couverture">
       <AlerteInscriptionsFermees />
+      <AlerteHorsDates nombre={resume.hors_dates} />
       <section className="tuiles">
         <Tuile valeur={resume.volontaires} libelle="volontaires inscrits">
           {Object.entries(resume.par_assemblee).map(([a, n]) => (
@@ -58,7 +59,7 @@ export default function Couverture() {
         <Tuile valeur={resume.jours_vides} libelle="jours sans personne" alerte={resume.jours_vides > 0} />
         <Tuile valeur={resume.jours_complets} libelle="jours complets" />
         {resume.sans_disponibilite > 0 && (
-          <Tuile valeur={resume.sans_disponibilite} libelle="inscrits sans aucun jour" alerte />
+          <Tuile valeur={resume.sans_disponibilite} libelle="inscrits sans aucun jour dans les dates" alerte />
         )}
       </section>
 
@@ -282,5 +283,25 @@ function DetailJour({
         </>
       )}
     </section>
+  );
+}
+
+/** Les dates du chantier ont changé : certains volontaires ont encore des jours hors des dates. */
+function AlerteHorsDates({ nombre }: { nombre: number }) {
+  const { peut } = useSession();
+  if (!nombre || !peut("responsable", "adjoint")) return null;
+  return (
+    <div className="carte alerte-hors-dates">
+      <p>
+        <b>
+          {nombre} volontaire{nombre > 1 ? "s ont" : " a"} des jours hors des dates du chantier
+        </b>{" "}
+        (les dates ont changé). Ces jours ne comptent plus ; ils disparaîtront quand la fiche sera enregistrée. Pense à
+        prévenir ces volontaires pour qu'ils revoient leurs jours.
+      </p>
+      <Link className="bouton whatsapp" to="/admin/messages?cible=hors_dates">
+        Prévenir ces volontaires
+      </Link>
+    </div>
   );
 }

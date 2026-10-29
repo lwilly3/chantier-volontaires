@@ -92,6 +92,7 @@ export interface Couverture {
   resume: {
     volontaires: number;
     sans_disponibilite: number;
+    hors_dates: number;
     par_assemblee: Record<string, number>;
     jours_chantier: number;
     jours_vides: number;

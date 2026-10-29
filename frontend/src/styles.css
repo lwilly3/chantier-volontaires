@@ -620,3 +620,10 @@ a.badge { text-decoration: none; }
 .interrupteur-inscriptions { padding: 0.6rem 0.8rem; border-radius: 10px; background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); margin-bottom: 1rem; }
 .interrupteur-inscriptions.ferme { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); }
 .note-equipe { font-size: 0.88rem; background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); margin-bottom: 0.8rem; }
+
+/* Changement de dates */
+.alerte-hors-dates { border: 2px solid var(--niv-presque); background: color-mix(in srgb, var(--niv-presque) 8%, var(--surface)); margin-bottom: 1rem; }
+.alerte-hors-dates p { margin: 0 0 0.6rem; }
+.impact-dates { border: 2px solid var(--niv-presque); border-radius: 12px; padding: 0.8rem 1rem; background: color-mix(in srgb, var(--niv-presque) 8%, var(--surface)); }
+.impact-dates p { margin: 0 0 0.4rem; }
+.impact-dates ul { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }

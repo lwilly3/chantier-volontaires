@@ -62,6 +62,9 @@ avec Dokploy.
 ### Protection des données
 - Rôles : la cuisine et le comité ne voient **que des chiffres**, jamais les noms ni les numéros.
 - **Jours passés figés** pour les volontaires (réglable).
+- **Changement des dates du chantier** : avant d'enregistrer, l'appli annonce combien de volontaires sont
+  concernés ; les jours hors des nouvelles dates ne comptent plus et une cible de messages « Jours à revoir »
+  permet de les prévenir.
 - **Fin du projet** : anonymiser (les statistiques restent) ou tout effacer, en un geste, confirmé par
   mot de passe.
 - **Démo** sans aucun vrai numéro de téléphone (numéros fictifs `+999…`).

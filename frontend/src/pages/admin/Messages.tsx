@@ -7,7 +7,7 @@ import { DEMO } from "../../lib/demo";
 import { useSession } from "../../lib/session";
 import type { ConfigPublique, Creneau } from "../../lib/types";
 
-type Cible = "tous" | "jour" | "assemblee" | "recrues";
+type Cible = "tous" | "jour" | "assemblee" | "recrues" | "hors_dates";
 type Reserve = "attendus" | "reserve" | "tous";
 
 interface Destinataire {
@@ -60,6 +60,13 @@ const MODELES: { id: string; titre: string; texte: string }[] = [
     texte: "Bonjour {prénom}, merci pour ta participation au chantier de la Salle du Royaume ! Ton aide est précieuse.",
   },
   {
+    id: "dates",
+    titre: "Dates changées",
+    texte:
+      "Bonjour {prénom}, les dates du chantier de la Salle du Royaume ont changé : il aura lieu {dates}. " +
+      "Certains de tes jours ne font plus partie du chantier. Vérifie et complète tes jours ici : {lien}",
+  },
+  {
     id: "communaute",
     titre: "Rejoindre la communauté",
     texte:
@@ -67,7 +74,7 @@ const MODELES: { id: string; titre: string; texte: string }[] = [
   },
 ];
 
-const CHAMPS = ["{prénom}", "{jour}", "{créneau}", "{lien}", "{communauté}"];
+const CHAMPS = ["{prénom}", "{jour}", "{créneau}", "{lien}", "{dates}", "{communauté}"];
 
 function hacher(s: string): string {
   let h = 0;
@@ -97,12 +104,16 @@ export default function Messages() {
   const [params] = useSearchParams();
 
   const [config, setConfig] = useState<ConfigPublique | null>(null);
-  const [cible, setCible] = useState<Cible>(equipe ? ((params.get("jour") ? "jour" : "tous") as Cible) : "recrues");
+  const [cible, setCible] = useState<Cible>(
+    equipe ? ((params.get("cible") as Cible) || (params.get("jour") ? "jour" : "tous")) : "recrues"
+  );
   const [jour, setJour] = useState(params.get("jour") ?? "");
   const [reserve, setReserve] = useState<Reserve>((params.get("reserve") as Reserve) ?? "attendus");
   const [assemblee, setAssemblee] = useState("");
   const [dest, setDest] = useState<Destinataire[] | null>(null);
-  const [texte, setTexte] = useState(MODELES[0].texte);
+  const [texte, setTexte] = useState(
+    (params.get("cible") === "hors_dates" ? MODELES.find((m) => m.id === "dates") : MODELES[0])!.texte
+  );
   const [erreur, setErreur] = useState("");
   const [copie, setCopie] = useState("");
   const [envoyes, setEnvoyes] = useState<Set<number>>(new Set());
@@ -148,6 +159,7 @@ export default function Messages() {
   const libelleCible = useMemo(() => {
     if (cible === "tous") return "Tous les volontaires actifs";
     if (cible === "recrues") return "Mes recrues";
+    if (cible === "hors_dates") return "Jours à revoir (dates changées)";
     if (cible === "assemblee") return `Assemblée ${assemblee}`;
     const r = reserve === "attendus" ? "attendus" : reserve === "reserve" ? "en réserve" : "attendus + réserve";
     return `${jour ? court(jour) : "?"} (${r})`;
@@ -168,6 +180,10 @@ export default function Messages() {
       .replaceAll("{créneau}", d?.creneau ? CRENEAU_TEXTE[d.creneau] : "")
       .replaceAll("{lien}", d ? lienPersonnel(d.token) : "ton lien personnel reçu à l'inscription")
       .replaceAll("{communauté}", communaute)
+      .replaceAll(
+        "{dates}",
+        config?.date_debut && config?.date_fin ? `du ${long(config.date_debut)} au ${long(config.date_fin)}` : ""
+      )
       .replace(/\(\s*\)/g, "")
       .replace(/ {2,}/g, " ")
       .replace(/ +([.,])/g, "$1")
@@ -237,6 +253,7 @@ export default function Messages() {
                 ["jour", "Les volontaires d'un jour"],
                 ["assemblee", "Une assemblée"],
                 ["recrues", "Mes recrues"],
+                ["hors_dates", "Jours à revoir (dates changées)"],
               ] as [Cible, string][]
             ).map(([v, l]) => (
               <button key={v} type="button" className={`puce ${cible === v ? "on" : ""}`} onClick={() => setCible(v)}>
