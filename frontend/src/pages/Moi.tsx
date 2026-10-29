@@ -19,7 +19,7 @@ export default function Moi() {
 
   useEffect(() => {
     Promise.all([
-      api<ConfigPublique>(`/api/public/config?jeton=${encodeURIComponent(token)}`),
+      api<ConfigPublique>(`/api/public/config?jeton=${encodeURIComponent(token)}`, { anonyme: true }),
       api<VolontairePublic>(`/api/public/moi/${token}`),
     ])
       .then(([c, v]) => {

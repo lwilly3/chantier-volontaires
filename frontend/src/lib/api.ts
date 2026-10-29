@@ -43,9 +43,11 @@ function messageErreur(status: number, corps: unknown): string {
   return `Erreur ${status}`;
 }
 
-export async function api<T>(chemin: string, options: RequestInit & { json?: unknown } = {}): Promise<T> {
-  const { json, headers, ...reste } = options;
-  const session = lireSession();
+/** anonyme : n'envoie pas la session de l'équipe (pages publiques : formulaire, lien personnel),
+ *  pour qu'elles se comportent exactement comme pour un volontaire. */
+export async function api<T>(chemin: string, options: RequestInit & { json?: unknown; anonyme?: boolean } = {}): Promise<T> {
+  const { json, headers, anonyme, ...reste } = options;
+  const session = anonyme ? null : lireSession();
   let res: Response;
   try {
     res = await fetch(`${BASE}${chemin}`, {

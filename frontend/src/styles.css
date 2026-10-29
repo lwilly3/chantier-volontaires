@@ -619,3 +619,4 @@ a.badge { text-decoration: none; }
 .alerte-inscriptions p { margin: 0 0 0.6rem; }
 .interrupteur-inscriptions { padding: 0.6rem 0.8rem; border-radius: 10px; background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); margin-bottom: 1rem; }
 .interrupteur-inscriptions.ferme { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); }
+.note-equipe { font-size: 0.88rem; background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); margin-bottom: 0.8rem; }

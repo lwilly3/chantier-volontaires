@@ -4,6 +4,7 @@ import ChampsVolontaire from "../components/ChampsVolontaire";
 import DispoGrid from "../components/DispoGrid";
 import CarteCommunaute from "../components/CarteCommunaute";
 import PiedDePage from "../components/PiedDePage";
+import { useSession } from "../lib/session";
 import LienPersonnel from "../components/LienPersonnel";
 import { api, ApiError } from "../lib/api";
 import { DEMO, DEMO_CODE_ACCES } from "../lib/demo";
@@ -39,7 +40,7 @@ export default function Inscription() {
   useEffect(() => {
     const q = new URLSearchParams();
     if (codeAcces) q.set("code", codeAcces);
-    api<ConfigPublique | ConfigVerrouillee>(`/api/public/config?${q}`)
+    api<ConfigPublique | ConfigVerrouillee>(`/api/public/config?${q}`, { anonyme: true })
       .then((c) => {
         if (!c.acces && codeAcces) memoriserCodeAcces(""); // code changé entre-temps : on redemande
         setConfig(c);
@@ -117,6 +118,7 @@ export default function Inscription() {
 
   return (
     <Ecran titre={config.nom_chantier}>
+      <NoteEquipe />
       {dejaInscrit && (
         <BandeauDejaInscrit
           token={dejaInscrit}
@@ -248,6 +250,7 @@ function EcranCode({
 
   return (
     <Ecran titre={titre}>
+      <NoteEquipe />
       {dejaInscrit && (
         <BandeauDejaInscrit
           token={dejaInscrit}
@@ -298,5 +301,18 @@ function BandeauDejaInscrit({ token, onOublier }: { token: string; onOublier: ()
         Ce n'est pas moi
       </button>
     </div>
+  );
+}
+
+/** Membre de l'équipe connecté sur ce navigateur : le formulaire public se comporte comme pour un volontaire. */
+function NoteEquipe() {
+  const { session } = useSession();
+  if (!session) return null;
+  return (
+    <p className="carte note-equipe">
+      Tu es connecté à l'espace équipe ({session.utilisateur.nom}). Ce formulaire est celui des volontaires : il demande
+      le code d'accès comme pour tout le monde. Pour inscrire quelqu'un toi-même, utilise plutôt{" "}
+      <Link to="/admin/volontaires">Volontaires → + Ajouter</Link>.
+    </p>
   );
 }
