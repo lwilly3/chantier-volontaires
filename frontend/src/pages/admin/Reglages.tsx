@@ -81,13 +81,28 @@ function ParametresChantier() {
       titre="Chantier"
       resume="Dates, plafond, assemblées, compétences, communauté"
       badge={
-        <span className="badge ok">
-          {new Date(p.date_debut).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} →{" "}
-          {new Date(p.date_fin).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {p.plafond_jour}/jour
-        </span>
+        p.inscriptions_ouvertes ? (
+          <span className="badge ok">
+            {new Date(p.date_debut).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} →{" "}
+            {new Date(p.date_fin).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · {p.plafond_jour}/jour
+          </span>
+        ) : (
+          <span className="badge complet">Inscriptions fermées</span>
+        )
       }
     >
     <form className="formulaire" onSubmit={enregistrer}>
+      <label className={`case-a-cocher interrupteur-inscriptions ${p.inscriptions_ouvertes ? "" : "ferme"}`}>
+        <input type="checkbox" checked={p.inscriptions_ouvertes} onChange={(e) => maj("inscriptions_ouvertes", e.target.checked)} />
+        <span>
+          <b>Inscriptions ouvertes</b>{" "}
+          <small>
+            {p.inscriptions_ouvertes
+              ? "(les volontaires peuvent s'inscrire)"
+              : "— fermées : décoche/coche puis « Enregistrer les réglages » en bas de la section"}
+          </small>
+        </span>
+      </label>
       <label className="champ">
         <span>Nom du chantier</span>
         <input value={p.nom_chantier} onChange={(e) => maj("nom_chantier", e.target.value)} />
@@ -171,10 +186,6 @@ function ParametresChantier() {
             corriger depuis la fiche du volontaire)
           </small>
         </span>
-      </label>
-      <label className="case-a-cocher">
-        <input type="checkbox" checked={p.inscriptions_ouvertes} onChange={(e) => maj("inscriptions_ouvertes", e.target.checked)} />
-        <span>Inscriptions ouvertes</span>
       </label>
       {etat.erreur && <p className="alerte">{etat.erreur}</p>}
       {etat.ok && <p className="ok">{etat.ok}</p>}

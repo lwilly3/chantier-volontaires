@@ -613,3 +613,9 @@ a.badge { text-decoration: none; }
 .mentions ul { padding-left: 1.2rem; margin: 0.3rem 0; }
 .mentions .chapeau { background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); border-radius: 10px; padding: 0.8rem 0.9rem; margin: 0; }
 .majorite .case-a-cocher + .case-a-cocher { margin-top: 0.7rem; }
+
+/* Inscriptions fermées */
+.alerte-inscriptions { border: 2px solid var(--danger); background: color-mix(in srgb, var(--danger) 6%, var(--surface)); margin-bottom: 1rem; }
+.alerte-inscriptions p { margin: 0 0 0.6rem; }
+.interrupteur-inscriptions { padding: 0.6rem 0.8rem; border-radius: 10px; background: color-mix(in srgb, var(--primaire) 7%, var(--surface)); margin-bottom: 1rem; }
+.interrupteur-inscriptions.ferme { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); }

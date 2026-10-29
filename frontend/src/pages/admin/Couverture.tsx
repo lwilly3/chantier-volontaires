@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../../lib/api";
 import { court, ENTETES_SEMAINE, long, numeroJour, semaines, versDate, versIso } from "../../lib/dates";
 import { copier } from "../../lib/liens";
+import AlerteInscriptionsFermees from "../../components/AlerteInscriptionsFermees";
 import SaisiePresents from "../../components/SaisiePresents";
 import { useSession } from "../../lib/session";
 import type { Couverture as TCouverture, JourCouverture, VolontaireDuJour } from "../../lib/types";
@@ -46,6 +47,7 @@ export default function Couverture() {
 
   return (
     <div className="couverture">
+      <AlerteInscriptionsFermees />
       <section className="tuiles">
         <Tuile valeur={resume.volontaires} libelle="volontaires inscrits">
           {Object.entries(resume.par_assemblee).map(([a, n]) => (
