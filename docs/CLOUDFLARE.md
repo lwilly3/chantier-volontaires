@@ -172,7 +172,37 @@ Rien à configurer dans le tableau de bord : tout est dans le dépôt.
 - **Routage** : les adresses comme `/moi/…`, `/admin/…` ou `/presences` fonctionnent sans règle de
   redirection : en l'absence de `404.html`, Pages renvoie `index.html` et l'application affiche la bonne
   page. Ne pas ajouter de `404.html` dans `frontend/public`.
-- Pas de Worker, pas de Page Rules, pas de règles de redirection nécessaires.
+- Pas de Worker ni de Page Rules. Une seule règle de redirection est utile si tu ajoutes d'autres adresses
+  au projet Pages (voir ci-dessous).
+
+### Une seule adresse pour le site (règle de redirection)
+
+Si d'autres adresses pointent vers le projet Pages (`www.volontaires.exemple.org`, `exemple.org`,
+`www.exemple.org`…), **redirige-les toutes vers `volontaires.exemple.org`**. Sinon :
+
+- l'API refuse les appels venant de ces adresses (elles ne sont pas dans `CORS_ORIGINS`) : le site affiche
+  « Pas de connexion au serveur » ;
+- chaque adresse aurait sa propre mémoire (session de l'équipe, « déjà inscrit sur ce téléphone »).
+
+Ne pas ajouter ces adresses dans `CORS_ORIGINS` : la redirection est la bonne solution.
+
+Cloudflare → ton domaine → **Règles → Règles de redirection → Créer une règle** :
+
+| Réglage | Valeur |
+|---|---|
+| Nom | `Vers volontaires.exemple.org` |
+| Si… | **Expression personnalisée** → **Modifier l'expression** (pas la case « Valeur » du mode simple) :<br>`(http.host in {"www.volontaires.exemple.org" "exemple.org" "www.exemple.org"})` |
+| Alors… Type | **Dynamique** |
+| Expression | `concat("https://volontaires.exemple.org", http.request.uri.path)` |
+| Code de statut | **301** |
+| Conserver la chaîne de requête | coché |
+
+L'aperçu de l'expression doit afficher exactement `(http.host in {…})`, sans `eq`. Si Cloudflare avertit que
+le trafic n'est peut-être pas proxifié, choisir **Ignorer et déployer quand même** : les enregistrements
+créés par Pages sont déjà en orange. Vérifier dans une fenêtre privée que `https://www.volontaires.exemple.org`
+bascule sur `volontaires.exemple.org`.
+
+Si l'adresse racine (`exemple.org`) doit servir à autre chose, la retirer de l'expression et du projet Pages.
 
 ## 8. R2 : stockage des sauvegardes
 
@@ -208,6 +238,8 @@ Le jeton R2 ne donne accès qu'à ce bucket : en cas de fuite, le révoquer et e
 | Symptôme | Cause | Solution |
 |---|---|---|
 | Le domaine personnalisé reste « En attente » | Enregistrement `volontaires`/`demo` créé à la main, ou propagation | Supprimer l'enregistrement manuel et réessayer ; attendre 5 à 10 min. |
+| « Pas de connexion au serveur » sur une autre adresse du site (`www.…`) | Adresse non autorisée par l'API (CORS) | Rediriger cette adresse vers l'adresse principale (§ 7, règle de redirection). |
+| La redirection ne s'applique pas | Expression collée dans la case « Valeur » (aperçu `http.host eq "(http.host in …)"`), ou enregistrement DNS en gris | Rouvrir la règle → **Modifier l'expression** ; vérifier le nuage orange de l'enregistrement. |
 | `ERR_TOO_MANY_REDIRECTS` sur l'API | `api` en orange avec SSL « Flexible » | Repasser `api` en gris, ou SSL/TLS → **Complet (strict)**. |
 | Certificat invalide sur `api…` | `api` en orange avant l'émission Let's Encrypt, ou DNS pas propagé | Gris, attendre, puis redéployer l'application dans Dokploy. |
 | Build Pages en échec : `npm` introuvable ou erreurs de syntaxe | Mauvaise racine ou version de Node | Racine `frontend`, `NODE_VERSION=22`. |
