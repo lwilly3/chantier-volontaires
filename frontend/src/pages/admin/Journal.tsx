@@ -11,6 +11,7 @@ export const LIBELLE_ACTION: Record<string, string> = {
   suppression: "Suppression",
   nouveau_lien: "Nouveau lien",
   parametres: "Réglages modifiés",
+  assemblee_renommee: "Assemblée renommée",
   lien_invitation: "Invitation envoyée",
   lien_reinitialisation: "Lien de mot de passe créé",
   invitation_acceptee: "Invitation acceptée",

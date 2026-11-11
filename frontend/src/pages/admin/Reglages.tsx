@@ -167,6 +167,13 @@ function ParametresChantier() {
         <span>Assemblées <small>(une par ligne)</small></span>
         <textarea rows={2} value={texte.assemblees} onChange={(e) => setTexte({ ...texte, assemblees: e.target.value })} />
       </label>
+      <RenommerAssemblee
+        cle={p.assemblees.join("|")}
+        onRenomme={(assemblees) => {
+          setP({ ...p, assemblees });
+          setTexte((t) => ({ ...t, assemblees: assemblees.join("\n") }));
+        }}
+      />
       <label className="champ">
         <span>Compétences proposées <small>(une par ligne)</small></span>
         <textarea rows={6} value={texte.competences} onChange={(e) => setTexte({ ...texte, competences: e.target.value })} />
@@ -279,6 +286,100 @@ function ParametresChantier() {
       )}
     </form>
     </Section>
+  );
+}
+
+interface EtatAssemblee {
+  nom: string;
+  volontaires: number;
+  dans_liste: boolean;
+}
+
+/** Renommer une assemblée en mettant aussi à jour les volontaires déjà inscrits
+ *  (changer le nom dans la liste ci-dessus ne les modifie pas). */
+function RenommerAssemblee({ cle, onRenomme }: { cle: string; onRenomme: (assemblees: string[]) => void }) {
+  const [liste, setListe] = useState<EtatAssemblee[]>([]);
+  const [ancien, setAncien] = useState("");
+  const [nouveau, setNouveau] = useState("");
+  const [etat, setEtat] = useState({ erreur: "", ok: "" });
+
+  useEffect(() => {
+    api<EtatAssemblee[]>("/api/admin/assemblees").then(setListe).catch(() => {});
+  }, [cle]);
+
+  const orphelines = liste.filter((a) => !a.dans_liste);
+  const cible = nouveau.trim();
+  const fusion = liste.some((a) => a.dans_liste && a.nom === cible && a.nom !== ancien);
+
+  const renommer = async () => {
+    if (!ancien || !cible) return;
+    try {
+      const r = await api<{ volontaires: number; assemblees: string[]; etat: EtatAssemblee[] }>(
+        "/api/admin/assemblees/renommer",
+        { method: "POST", json: { ancien, nouveau: cible } },
+      );
+      setListe(r.etat);
+      setEtat({
+        erreur: "",
+        ok: `« ${ancien} » est devenue « ${cible} » (${r.volontaires} volontaire${r.volontaires > 1 ? "s" : ""} mis à jour).`,
+      });
+      setAncien("");
+      setNouveau("");
+      onRenomme(r.assemblees);
+    } catch (err) {
+      setEtat({ erreur: (err as ApiError).message, ok: "" });
+    }
+  };
+
+  return (
+    <fieldset className="champ renommer-assemblee">
+      <legend>Renommer une assemblée</legend>
+      <p className="aide">
+        Changer un nom dans la liste ci-dessus ne modifie pas les volontaires déjà inscrits. Pour corriger un nom
+        partout, renomme-le ici.
+      </p>
+      {orphelines.length > 0 && (
+        <p className="alerte">
+          Des volontaires sont dans une assemblée absente de la liste :{" "}
+          {orphelines.map((a) => `${a.nom} (${a.volontaires})`).join(", ")}. Renomme-la vers une assemblée de la liste
+          pour les regrouper.
+        </p>
+      )}
+      <div className="actions">
+        <select value={ancien} onChange={(e) => setAncien(e.target.value)} aria-label="Assemblée à renommer">
+          <option value="">Assemblée à renommer…</option>
+          {liste.map((a) => (
+            <option key={a.nom} value={a.nom}>
+              {a.nom} ({a.volontaires}){a.dans_liste ? "" : " — hors liste"}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          maxLength={80}
+          placeholder="Nouveau nom"
+          aria-label="Nouveau nom"
+          value={nouveau}
+          onChange={(e) => setNouveau(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              renommer();
+            }
+          }}
+        />
+        <button type="button" className="bouton" disabled={!ancien || !cible || cible === ancien} onClick={renommer}>
+          {fusion ? "Fusionner" : "Renommer"}
+        </button>
+      </div>
+      {fusion && (
+        <p className="aide">
+          « {cible} » existe déjà : les volontaires de « {ancien} » y seront regroupés.
+        </p>
+      )}
+      {etat.erreur && <p className="alerte">{etat.erreur}</p>}
+      {etat.ok && <p className="ok">{etat.ok}</p>}
+    </fieldset>
   );
 }
 

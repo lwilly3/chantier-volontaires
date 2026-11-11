@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { DEMO } from "../lib/demo";
 import type { VolontaireForm } from "../lib/types";
 
@@ -12,6 +13,13 @@ export default function ChampsVolontaire({ valeur, onChange, assemblees, compete
   const maj = <K extends keyof VolontaireForm>(k: K, v: VolontaireForm[K]) => onChange({ ...valeur, [k]: v });
   const basculerComp = (c: string) =>
     maj("competences", valeur.competences.includes(c) ? valeur.competences.filter((x) => x !== c) : [...valeur.competences, c]);
+
+  // Assemblée déjà enregistrée mais retirée (ou renommée) dans les réglages : elle reste proposée,
+  // sinon le volontaire ne verrait aucun choix sélectionné.
+  const horsListe = useRef("");
+  if (valeur.assemblee && !assemblees.includes(valeur.assemblee)) horsListe.current = valeur.assemblee;
+  const choixAssemblees =
+    horsListe.current && !assemblees.includes(horsListe.current) ? [...assemblees, horsListe.current] : assemblees;
 
   return (
     <div className="champs">
@@ -49,7 +57,7 @@ export default function ChampsVolontaire({ valeur, onChange, assemblees, compete
       <fieldset className="champ">
         <legend>Assemblée</legend>
         <div className="segment">
-          {assemblees.map((a) => (
+          {choixAssemblees.map((a) => (
             <button
               key={a}
               type="button"

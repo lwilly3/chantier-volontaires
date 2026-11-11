@@ -8,7 +8,8 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, or_, select
+from pydantic import BaseModel, Field
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from .. import jetons, mailer
@@ -189,8 +190,8 @@ def modifier(
     tel = normaliser_telephone(data.telephone)
     if tel != v.telephone and db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
         raise HTTPException(409, "Ce numéro est déjà utilisé par un autre volontaire")
+    v.competences = valider_profil(p, data.assemblee, data.competences, actuelle=v.assemblee)
     v.nom, v.telephone, v.assemblee = data.nom, tel, data.assemblee
-    v.competences = valider_profil(p, data.assemblee, data.competences)
     v.est_mineur, v.remarques = data.est_mineur, data.remarques.strip()
     v.nb_mineurs = data.nb_mineurs
     if data.actif is not None and data.actif != v.actif:
@@ -333,6 +334,47 @@ def ecrire_parametres(data: ParametresIO, db: Session = Depends(get_db), user: U
     journaliser(db, user.nom, "parametres", None, f"Plafond {p.plafond_jour}, du {p.date_debut} au {p.date_fin}")
     db.commit()
     return p
+
+
+class RenommerAssembleeIn(BaseModel):
+    ancien: str = Field(min_length=1, max_length=80)
+    nouveau: str = Field(min_length=1, max_length=80)
+
+
+def _assemblees_etat(db: Session, p) -> list[dict]:
+    """Assemblées des réglages, puis celles encore portées par des volontaires sans être dans la liste."""
+    comptes = dict(db.execute(select(Volontaire.assemblee, func.count()).group_by(Volontaire.assemblee)).all())
+    noms = list(p.assemblees) + sorted(a for a in comptes if a not in p.assemblees)
+    return [{"nom": a, "volontaires": comptes.get(a, 0), "dans_liste": a in p.assemblees} for a in noms]
+
+
+@router.get("/assemblees")
+def lister_assemblees(db: Session = Depends(get_db), _: Utilisateur = Depends(responsable)):
+    return _assemblees_etat(db, get_parametres(db))
+
+
+@router.post("/assemblees/renommer")
+def renommer_assemblee(data: RenommerAssembleeIn, db: Session = Depends(get_db), user: Utilisateur = Depends(responsable)):
+    """Renomme une assemblée dans les réglages ET sur les volontaires déjà inscrits.
+    Si le nouveau nom existe déjà dans la liste, les deux assemblées sont fusionnées."""
+    p = get_parametres(db)
+    ancien, nouveau = data.ancien.strip(), " ".join(data.nouveau.split())
+    if not nouveau:
+        raise HTTPException(422, "Indique le nouveau nom")
+    if nouveau == ancien:
+        raise HTTPException(422, "Le nouveau nom est identique à l'ancien")
+    nb = db.scalar(select(func.count()).select_from(Volontaire).where(Volontaire.assemblee == ancien))
+    if ancien not in p.assemblees and not nb:
+        raise HTTPException(404, "Assemblée inconnue")
+    db.execute(update(Volontaire).where(Volontaire.assemblee == ancien).values(assemblee=nouveau))
+    # nouvelle liste (et non modification en place) pour que la colonne JSON soit bien enregistrée
+    liste = [nouveau if a == ancien else a for a in p.assemblees]
+    if nouveau not in liste:
+        liste.append(nouveau)
+    p.assemblees = list(dict.fromkeys(liste))
+    journaliser(db, user.nom, "assemblee_renommee", None, f"{ancien} → {nouveau} — {nb} volontaire(s)")
+    db.commit()
+    return {"volontaires": nb, "assemblees": p.assemblees, "etat": _assemblees_etat(db, p)}
 
 
 @router.put("/acces-formulaire", response_model=ParametresIO)

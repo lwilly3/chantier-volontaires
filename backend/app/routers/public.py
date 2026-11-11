@@ -179,8 +179,8 @@ def modifier_profil(token: str, data: VolontaireIn, db: Session = Depends(get_db
     tel = normaliser_telephone(data.telephone)
     if tel != v.telephone and db.scalar(select(Volontaire.id).where(Volontaire.telephone == tel)):
         raise HTTPException(409, "Ce numéro est déjà utilisé par un autre volontaire")
+    v.competences = valider_profil(p, data.assemblee, data.competences, actuelle=v.assemblee)
     v.nom, v.telephone, v.assemblee = data.nom, tel, data.assemblee
-    v.competences = valider_profil(p, data.assemblee, data.competences)
     v.nb_mineurs, v.remarques = data.nb_mineurs, data.remarques.strip()
     resume = synchroniser_disponibilites(
         db, p, v, [d.model_dump() for d in data.disponibilites], jours_figes_avant(p)

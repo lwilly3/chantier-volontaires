@@ -97,8 +97,10 @@ def nouveau_token() -> str:
     return secrets.token_urlsafe(18)
 
 
-def valider_profil(p: Parametres, assemblee: str, competences: list[str]) -> list[str]:
-    if assemblee not in p.assemblees:
+def valider_profil(p: Parametres, assemblee: str, competences: list[str], actuelle: str | None = None) -> list[str]:
+    """actuelle : assemblée déjà enregistrée du volontaire. Elle reste acceptée même si elle a été
+    renommée ou retirée des réglages, pour qu'il puisse toujours modifier ses jours."""
+    if assemblee not in p.assemblees and assemblee != actuelle:
         raise HTTPException(422, "Assemblée inconnue")
     autorisees = set(p.competences) | {"Autre"}
     propres = [c for c in dict.fromkeys(competences) if c in autorisees]

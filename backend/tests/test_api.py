@@ -152,3 +152,55 @@ def test_inscriptions_fermees(client):
     params = client.get("/api/admin/parametres", headers=h).json()
     client.put("/api/admin/parametres", headers=h, json={**params, "inscriptions_ouvertes": False})
     assert client.post("/api/public/inscription", json=payload()).status_code == 403
+
+
+def test_assemblee_retiree_des_reglages(client):
+    """Un volontaire dont l'assemblée a été retirée des réglages peut toujours modifier ses jours."""
+    h = admin_headers(client)
+    r = client.post("/api/public/inscription", json=payload())
+    token, vid = r.json()["token"], client.get("/api/admin/volontaires", headers=h).json()[0]["id"]
+
+    params = client.get("/api/admin/parametres", headers=h).json()
+    restantes = [a for a in params["assemblees"] if a != "Assemblée B"]
+    assert client.put("/api/admin/parametres", headers=h, json={**params, "assemblees": restantes}).status_code == 200
+
+    # il garde son assemblée : accepté, par son lien personnel comme par l'équipe
+    p = payload(jours=["2026-11-28"])
+    assert client.put(f"/api/public/moi/{token}", json=p).status_code == 200
+    assert client.put(f"/api/admin/volontaires/{vid}", headers=h, json=p).status_code == 200
+    # il peut passer à une assemblée de la liste, mais plus revenir à celle retirée
+    assert client.put(f"/api/public/moi/{token}", json={**p, "assemblee": restantes[0]}).status_code == 200
+    assert client.put(f"/api/public/moi/{token}", json=p).status_code == 422
+    # une nouvelle inscription dans l'assemblée retirée reste refusée
+    assert client.post("/api/public/inscription", json=payload(tel="677000002")).status_code == 422
+
+
+def test_renommer_assemblee(client):
+    h = admin_headers(client)
+    client.post("/api/public/inscription", json=payload())
+    client.post("/api/public/inscription", json={**payload(tel="677000002"), "assemblee": "Assemblée A"})
+    url = "/api/admin/assemblees/renommer"
+
+    # renommage : réglages et volontaires suivent, la position dans la liste est conservée
+    r = client.post(url, headers=h, json={"ancien": "Assemblée B", "nouveau": "  Bonamoussadi "})
+    assert r.status_code == 200 and r.json()["volontaires"] == 1
+    assert client.get("/api/admin/parametres", headers=h).json()["assemblees"] == ["Assemblée A", "Bonamoussadi"]
+    assert {v["assemblee"] for v in client.get("/api/admin/volontaires", headers=h).json()} == {"Assemblée A", "Bonamoussadi"}
+    assert "assemblee_renommee" in [j["action"] for j in client.get("/api/admin/journal", headers=h).json()]
+
+    # fusion vers une assemblée existante : pas de doublon dans la liste
+    r = client.post(url, headers=h, json={"ancien": "Bonamoussadi", "nouveau": "Assemblée A"})
+    assert r.json()["assemblees"] == ["Assemblée A"] and r.json()["volontaires"] == 1
+    assert [(a["nom"], a["volontaires"], a["dans_liste"]) for a in client.get("/api/admin/assemblees", headers=h).json()] == [
+        ("Assemblée A", 2, True)
+    ]
+
+    # assemblée retirée de la liste mais encore portée par des volontaires : visible, et rattachable
+    params = client.get("/api/admin/parametres", headers=h).json()
+    client.put("/api/admin/parametres", headers=h, json={**params, "assemblees": ["Centre"]})
+    etat = client.get("/api/admin/assemblees", headers=h).json()
+    assert {"nom": "Assemblée A", "volontaires": 2, "dans_liste": False} in etat
+    assert client.post(url, headers=h, json={"ancien": "Assemblée A", "nouveau": "Centre"}).json()["assemblees"] == ["Centre"]
+
+    assert client.post(url, headers=h, json={"ancien": "Inexistante", "nouveau": "X"}).status_code == 404
+    assert client.post(url, headers=h, json={"ancien": "Centre", "nouveau": "Centre"}).status_code == 422
