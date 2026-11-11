@@ -136,6 +136,14 @@ def test_admin_crud_export_journal(client):
     actions = [j["action"] for j in client.get("/api/admin/journal", headers=h).json()]
     assert {"inscription", "nouveau_lien", "desactivation"} <= set(actions)
 
+    # pagination : les pages se suivent sans doublon ni trou, le total correspond
+    total = client.get("/api/admin/journal/nombre", headers=h).json()["total"]
+    assert total == len(actions) >= 3
+    p1 = client.get("/api/admin/journal?limite=2", headers=h).json()
+    p2 = client.get("/api/admin/journal?limite=2&decalage=2", headers=h).json()
+    assert [j["id"] for j in p1 + p2] == [j["id"] for j in client.get("/api/admin/journal", headers=h).json()][:len(p1 + p2)]
+    assert client.get("/api/admin/journal/nombre", headers=h, params={"volontaire_id": vid}).json()["total"] >= 3
+
     assert client.delete(f"/api/admin/volontaires/{vid}", headers=h).status_code == 204
 
 

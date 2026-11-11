@@ -252,12 +252,20 @@ def export_csv(db: Session = Depends(get_db), _: Utilisateur = Depends(equipe)):
 
 @router.get("/journal")
 def journal(
-    limite: int = Query(100, le=500),
+    limite: int = Query(100, ge=1, le=500),
+    decalage: int = Query(0, ge=0),
     volontaire_id: int | None = None,
     db: Session = Depends(get_db),
     _: Utilisateur = Depends(equipe),
 ):
-    stmt = select(Journal, Volontaire.nom).outerjoin(Volontaire).order_by(Journal.created_at.desc()).limit(limite)
+    # id en second critère : ordre stable d'une page à l'autre, même à date égale
+    stmt = (
+        select(Journal, Volontaire.nom)
+        .outerjoin(Volontaire)
+        .order_by(Journal.created_at.desc(), Journal.id.desc())
+        .offset(decalage)
+        .limit(limite)
+    )
     if volontaire_id:
         stmt = stmt.where(Journal.volontaire_id == volontaire_id)
     return [
@@ -267,6 +275,19 @@ def journal(
         }
         for j, nom in db.execute(stmt).all()
     ]
+
+
+@router.get("/journal/nombre")
+def journal_nombre(
+    volontaire_id: int | None = None,
+    db: Session = Depends(get_db),
+    _: Utilisateur = Depends(equipe),
+):
+    """Nombre total d'entrées, pour paginer le journal."""
+    stmt = select(func.count(Journal.id))
+    if volontaire_id:
+        stmt = stmt.where(Journal.volontaire_id == volontaire_id)
+    return {"total": db.scalar(stmt) or 0}
 
 
 # ---------------------------------------------------------------- paramètres
