@@ -41,6 +41,11 @@ export default function Couverture() {
   if (!data) return <p className="chargement">Chargement…</p>;
   const { resume, plafond_jour: plafond } = data;
   const jourSel = selection ? parJour.get(selection) : undefined;
+  // Rappelé en tête des images exportées : total des inscrits, puis le détail par assemblée
+  const inscrits = [
+    `${resume.volontaires} volontaire${resume.volontaires > 1 ? "s" : ""} inscrit${resume.volontaires > 1 ? "s" : ""}`,
+    ...Object.entries(resume.par_assemblee).map(([a, n]) => `${a} : ${n}`),
+  ];
 
   return (
     <div className="couverture">
@@ -106,13 +111,14 @@ export default function Couverture() {
           aujourdhui={data.aujourdhui}
           prefixe="couverture"
           titre="Couverture par jour"
-          dessiner={(js, date) => imageCalendrier(js, plafond, data.seuil_alerte, date)}
+          dessiner={(js, date) => imageCalendrier(js, plafond, data.seuil_alerte, date, inscrits)}
         />
       </section>
 
       <GrilleCompetences
         jours={data.jours}
         competences={data.competences}
+        inscrits={inscrits}
         aujourdhui={data.aujourdhui}
         selection={selection}
         onSelection={setSelection}

@@ -16,6 +16,26 @@ function arrondi(ctx: CanvasRenderingContext2D, x: number, y: number, l: number,
   else ctx.rect(x, y, l, h);
 }
 
+/** Répartit des mentions (« 92 volontaires inscrits », « Assemblée A : 46 »…) sur autant de lignes qu'il faut. */
+function enLignes(ctx: CanvasRenderingContext2D, mentions: string[], largeurMax: number): string[] {
+  ctx.font = `600 13px ${POLICE}`;
+  const lignes: string[] = [];
+  for (const m of mentions) {
+    const essai = lignes.length ? `${lignes[lignes.length - 1]} · ${m}` : m;
+    if (lignes.length && ctx.measureText(essai).width <= largeurMax) lignes[lignes.length - 1] = essai;
+    else lignes.push(m);
+  }
+  return lignes;
+}
+
+/** État des inscriptions, sous le titre : situe l'image pour celui qui la reçoit. */
+function dessinerInscrits(ctx: CanvasRenderingContext2D, lignes: string[], x: number, y: number) {
+  ctx.textAlign = "left";
+  ctx.fillStyle = TEXTE;
+  ctx.font = `600 13px ${POLICE}`;
+  lignes.forEach((l, i) => ctx.fillText(l, x, y + i * 19));
+}
+
 const melange = (c: number[], part: number) =>
   `rgb(${c.map((v) => Math.round(v * part + 255 * (1 - part))).join(",")})`;
 
@@ -24,6 +44,8 @@ export function imageGrille(
   jours: JourCouverture[], lignes: string[], max: number, exporteLe: Date,
   /** Compétences mises en évidence à l'écran : elles ressortent de la même façon dans l'image. */
   actives: ReadonlySet<string> = new Set(),
+  /** État des inscriptions à rappeler sous le titre (total, puis une mention par assemblée). */
+  inscrits: string[] = [],
 ): Promise<Blob> {
   const ECH = 2; // netteté sur les écrans de téléphone
   const CASE = 30, PAS = 32, MARGE = 20;
@@ -32,8 +54,9 @@ export function imageGrille(
 
   ctx.font = `600 13px ${POLICE}`;
   const colNoms = Math.ceil(Math.max(...lignes.map((l) => ctx.measureText(l).width))) + 26;
-  const hautTitre = 54, hautEntete = 50, hautPied = 62;
   const largeur = Math.max(MARGE * 2 + colNoms + jours.length * PAS, 560);
+  const lignesInscrits = enLignes(ctx, inscrits, largeur - MARGE * 2);
+  const hautTitre = 54 + lignesInscrits.length * 19 + (lignesInscrits.length ? 6 : 0), hautEntete = 50, hautPied = 62;
   const hauteur = MARGE + hautTitre + hautEntete + lignes.length * PAS + hautPied + MARGE - 8;
   canvas.width = largeur * ECH;
   canvas.height = hauteur * ECH;
@@ -52,6 +75,7 @@ export function imageGrille(
   const quand = exporteLe.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const heure = exporteLe.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   ctx.fillText(`Volontaires attendus · exporté le ${quand} à ${heure}`, MARGE, MARGE + 34);
+  dessinerInscrits(ctx, lignesInscrits, MARGE, MARGE + 58);
 
   // En-têtes : mois, puis jour de la semaine et numéro
   const x0 = MARGE + colNoms;
@@ -130,17 +154,21 @@ const NIVEAUX: Record<ReturnType<typeof niveau>, { fond: string; texte: string }
 };
 
 /** Dessine le calendrier « Couverture par jour » (semaines lun → sam) dans une image PNG. */
-export function imageCalendrier(jours: JourCouverture[], plafond: number, seuil: number, exporteLe: Date): Promise<Blob> {
+export function imageCalendrier(
+  jours: JourCouverture[], plafond: number, seuil: number, exporteLe: Date, inscrits: string[] = [],
+): Promise<Blob> {
   const ECH = 2;
   const MARGE = 20, LARG = 118, HAUT = 62, ESP = 6;
   const grille = semaines(jours.map((j) => j.jour));
   const parJour = new Map(jours.map((j) => [j.jour, j]));
-  const hautTitre = 54, hautLegende = 34, hautEntete = 22, hautPied = 44;
-  const largeur = MARGE * 2 + 6 * LARG + 5 * ESP;
-  const y0 = MARGE + hautTitre + hautLegende + hautEntete;
-  const hauteur = y0 + grille.length * (HAUT + ESP) + hautPied + MARGE - 8;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
+  const largeur = MARGE * 2 + 6 * LARG + 5 * ESP;
+  const lignesInscrits = enLignes(ctx, inscrits, largeur - MARGE * 2);
+  const hautTitre = 54 + lignesInscrits.length * 19 + (lignesInscrits.length ? 6 : 0);
+  const hautLegende = 34, hautEntete = 22, hautPied = 44;
+  const y0 = MARGE + hautTitre + hautLegende + hautEntete;
+  const hauteur = y0 + grille.length * (HAUT + ESP) + hautPied + MARGE - 8;
   canvas.width = largeur * ECH;
   canvas.height = hauteur * ECH;
   ctx.scale(ECH, ECH);
@@ -156,7 +184,8 @@ export function imageCalendrier(jours: JourCouverture[], plafond: number, seuil:
   ctx.font = `13px ${POLICE}`;
   const quand = exporteLe.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const heure = exporteLe.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  ctx.fillText(`Volontaires inscrits · exporté le ${quand} à ${heure}`, MARGE, MARGE + 34);
+  ctx.fillText(`Inscrits par jour · exporté le ${quand} à ${heure}`, MARGE, MARGE + 34);
+  dessinerInscrits(ctx, lignesInscrits, MARGE, MARGE + 58);
 
   // Légende des couleurs
   let xl = MARGE;

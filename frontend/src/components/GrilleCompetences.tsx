@@ -7,10 +7,12 @@ import type { JourCouverture } from "../lib/types";
 /** Grille compétences × jours : combien de volontaires attendus (hors réserve) ont chaque compétence.
  *  Aucun besoin n'est défini par compétence : le seul signal sûr est le zéro, mis en évidence. */
 export default function GrilleCompetences({
-  jours, competences, aujourdhui, selection, onSelection,
+  jours, competences, inscrits, aujourdhui, selection, onSelection,
 }: {
   jours: JourCouverture[];
   competences: string[];
+  /** État des inscriptions, rappelé en tête de l'image exportée. */
+  inscrits: string[];
   aujourdhui: string;
   selection: string | null;
   onSelection: (jour: string) => void;
@@ -156,7 +158,7 @@ export default function GrilleCompetences({
         prefixe="competences"
         periode
         titre="Compétences par jour"
-        dessiner={(js, date) => imageGrille(js, lignes.map((l) => l.nom), max, date, actives)}
+        dessiner={(js, date) => imageGrille(js, lignes.map((l) => l.nom), max, date, actives, inscrits)}
       />
     </section>
   );
