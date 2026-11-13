@@ -13,6 +13,8 @@ Pour publier une version : [docs/INSTALLATION.md § 6](docs/INSTALLATION.md#6-me
 
 ## Non publié
 
+## [1.0.0] — 2026-11-13
+
 Première version numérotée.
 
 - **Volontaires** : inscription sans compte, grille des jours (journée, matin ou après-midi), lien
