@@ -319,6 +319,8 @@ Un push ordinaire met l'application à jour ; une **version** fige en plus un é
 numéro (`v1.2.0`), pour pouvoir le retrouver et le télécharger plus tard.
 
 1. Au fil des changements, note-les dans la section **« Non publié »** de [`CHANGELOG.md`](../CHANGELOG.md).
+   Les agents (Claude Code) suivent [`CLAUDE.md`](../CLAUDE.md) : ils tiennent ce journal et publient
+   la version d'eux-mêmes quand on leur demande de pousser.
 2. Tous les commits faits, lance :
 
    ```bash
