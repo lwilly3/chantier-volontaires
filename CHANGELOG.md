@@ -13,6 +13,8 @@ Pour publier une version : [docs/INSTALLATION.md § 6](docs/INSTALLATION.md#6-me
 
 ## Non publié
 
+## [1.1.0] — 2026-11-14
+
 - **Export en image** : les images du calendrier et de la grille des compétences rappellent l'état des
   inscriptions (total et détail par assemblée) sous le titre.
 
