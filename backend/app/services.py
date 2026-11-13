@@ -245,10 +245,11 @@ def couverture(db: Session, p: Parametres, detail: bool = True) -> list[dict]:
         }
         if detail:
             entree["journee"] = creneaux["journee"]
-            entree["par_assemblee"] = dict(Counter(r.assemblee for r in lignes))
+            # Répartitions sur les volontaires attendus : la réserve ne vient pas sur le chantier
+            entree["par_assemblee"] = dict(Counter(r.assemblee for r in attendus))
             comp = Counter()
-            for r in lignes:
-                comp.update(r.competences or [])
+            for r in attendus:
+                comp.update(set(r.competences or []))
             entree["par_competence"] = dict(comp.most_common())
         resultat.append(entree)
     return resultat

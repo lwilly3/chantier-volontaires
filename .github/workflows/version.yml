@@ -1,0 +1,27 @@
+name: Version
+
+# Une étiquette vX.Y.Z poussée sur GitHub devient une « Release » : notes tirées de CHANGELOG.md
+# et archives du code (zip, tar.gz) téléchargeables.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier que l'étiquette correspond au numéro du code
+        run: python3 scripts/publier_version.py --verifier "$GITHUB_REF_NAME"
+
+      - name: Extraire les notes de version
+        run: python3 scripts/publier_version.py --notes "$GITHUB_REF_NAME" > notes.md
+
+      - name: Créer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "Version ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag

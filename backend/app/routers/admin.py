@@ -87,6 +87,8 @@ def get_couverture(db: Session = Depends(get_db), _: Utilisateur = Depends(tous_
         "compter_mineurs_plafond": p.compter_mineurs_plafond,
         "taux_presence": ana["taux_global"],
         "aujourdhui": aujourd_hui(),
+        # liste des réglages : la grille par compétence montre aussi celles que personne n'a
+        "competences": p.competences,
         "jours": jours,
         "resume": {
             "volontaires": actifs,

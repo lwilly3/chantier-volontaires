@@ -88,6 +88,7 @@ export interface Couverture {
   compter_mineurs_plafond: boolean;
   taux_presence: number | null;
   aujourdhui: string;
+  competences: string[];
   jours: JourCouverture[];
   resume: {
     volontaires: number;

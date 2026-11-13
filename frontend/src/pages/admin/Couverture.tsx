@@ -4,17 +4,14 @@ import { api, ApiError } from "../../lib/api";
 import { court, ENTETES_SEMAINE, long, numeroJour, semaines, versDate, versIso } from "../../lib/dates";
 import { copier } from "../../lib/liens";
 import AlerteInscriptionsFermees from "../../components/AlerteInscriptionsFermees";
+import BoutonsExport from "../../components/BoutonsExport";
+import GrilleCompetences from "../../components/GrilleCompetences";
+import { niveau } from "../../lib/couverture";
+import { imageCalendrier } from "../../lib/imageGrille";
 import SaisiePresents from "../../components/SaisiePresents";
 import { useSession } from "../../lib/session";
 import type { Couverture as TCouverture, JourCouverture, VolontaireDuJour } from "../../lib/types";
 import { LIBELLE_CRENEAU } from "../../lib/dates";
-
-function niveau(j: JourCouverture, plafond: number): string {
-  if (j.statut === "vide") return "vide";
-  if (j.statut === "complet") return "complet";
-  if (j.statut === "presque") return "presque";
-  return j.total < plafond / 2 ? "faible" : "ok";
-}
 
 export default function Couverture() {
   const [data, setData] = useState<TCouverture | null>(null);
@@ -104,7 +101,22 @@ export default function Couverture() {
             </div>
           ))}
         </div>
+        <BoutonsExport
+          jours={data.jours}
+          aujourdhui={data.aujourdhui}
+          prefixe="couverture"
+          titre="Couverture par jour"
+          dessiner={(js, date) => imageCalendrier(js, plafond, data.seuil_alerte, date)}
+        />
       </section>
+
+      <GrilleCompetences
+        jours={data.jours}
+        competences={data.competences}
+        aujourdhui={data.aujourdhui}
+        selection={selection}
+        onSelection={setSelection}
+      />
 
       {jourSel && (
         <DetailJour

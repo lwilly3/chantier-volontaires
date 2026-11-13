@@ -44,6 +44,14 @@ def payload(tel="677000001", jours=None, nom="Jean Mbarga"):
     }
 
 
+def test_health_annonce_la_version(client):
+    from app.version import __version__
+
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok", "version": __version__}
+
+
 def test_config_publique(client):
     r = client.get("/api/public/config")
     assert r.status_code == 200
@@ -94,6 +102,10 @@ def test_couverture_et_plafond(client):
     lundi = next(j for j in cov["jours"] if j["jour"] == "2026-11-23")
     assert lundi["total"] == 3 and lundi["reserve"] == 1 and lundi["statut"] == "complet"
     assert cov["resume"]["volontaires"] == 3
+    # répartitions : seuls les attendus comptent, pas la réserve
+    assert lundi["par_competence"] == {"Maçonnerie": 2}
+    assert lundi["par_assemblee"] == {"Assemblée B": 2}
+    assert "Électricité" in cov["competences"]
 
     jour = client.get("/api/admin/jours/2026-11-23", headers=h).json()
     assert [v["en_reserve"] for v in jour["volontaires"]] == [False, False, True]

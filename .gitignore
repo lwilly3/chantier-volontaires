@@ -13,3 +13,5 @@ frontend/dist/
 
 # Notes locales (valeurs de ton installation, jamais publiées)
 *.local.md
+# Lancement local par Claude Code (chemins propres à la machine)
+.claude/

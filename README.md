@@ -51,6 +51,9 @@ avec Dokploy.
 ### Pour l'équipe (`/admin`)
 - **Couverture** : calendrier coloré selon le remplissage, plafond par jour (sécurité), **réserve
   automatique** au-delà, repas à prévoir, répartition par assemblée et compétence, liste du jour.
+  **Grille compétences × jours** : combien de volontaires attendus par compétence chaque jour, les
+  jours sans personne en rouge ; un clic sur une compétence met sa ligne en évidence. Calendrier et
+  grille s'**exportent en image** datée (jours à venir, tout le chantier ou une période) à partager.
 - **Volontaires** : recherche, filtres, saisie pour ceux qui n'ont pas de smartphone, export Excel (CSV).
 - **Messages WhatsApp** : à tous, aux volontaires d'un jour (attendus / réserve), à une assemblée ou à
   ses recrues ; modèles et champs personnalisés (`{prénom}`, `{jour}`, `{créneau}`, `{lien}`) ;
@@ -121,6 +124,13 @@ Modèles de variables : `backend/.env.example`, `backend/demo.env.example`, `fro
 Après l'installation, dans **Réglages** : nom et dates du chantier, assemblées, compétences, plafond par
 jour, **responsable des données** (affiché dans les mentions légales), code d'accès, comptes de l'équipe.
 Facultatif : `VITE_DEPOT_URL` pour que le lien « Code source » pointe vers ta copie du dépôt.
+
+## Versions
+
+Chaque version publiée porte un numéro (`v1.0.0`), affiché en pied de page de l'application. Elle se
+télécharge depuis la page **[Releases](https://github.com/lwilly3/chantier-volontaires/releases)** ou se
+récupère avec `git checkout v1.0.0`. Contenu de chaque version : **[CHANGELOG.md](CHANGELOG.md)** ;
+publier une version : [docs/INSTALLATION.md § 6](docs/INSTALLATION.md#6-mettre-à-jour-lapplication).
 
 ## Notes techniques
 

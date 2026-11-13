@@ -12,6 +12,7 @@ from . import demo
 from .routers import admin, auth, fin_projet, messages, presences, public
 from .security import hash_password
 from .services import get_parametres
+from .version import __version__
 
 
 def bootstrap() -> None:
@@ -47,7 +48,7 @@ async def lifespan(_: FastAPI):
         tache.cancel()
 
 
-app = FastAPI(title="Volontaires — API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Volontaires — API", version=__version__, lifespan=lifespan)
 app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
@@ -70,4 +71,4 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "version": __version__}

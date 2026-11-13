@@ -313,6 +313,35 @@ Revenir en arrière : Cloudflare Pages → Déploiements → ancien déploiement
 Deployments → redéployer un commit précédent (ou `git revert` puis push). ⚠️ Une migration de base déjà
 appliquée n'est pas annulée par un retour arrière du code.
 
+### Publier une version
+
+Un push ordinaire met l'application à jour ; une **version** fige en plus un état précis du projet sous un
+numéro (`v1.2.0`), pour pouvoir le retrouver et le télécharger plus tard.
+
+1. Au fil des changements, note-les dans la section **« Non publié »** de [`CHANGELOG.md`](../CHANGELOG.md).
+2. Tous les commits faits, lance :
+
+   ```bash
+   python3 scripts/publier_version.py mineure     # ou : correctif, majeure, ou un numéro comme 1.2.0
+   git push origin main --follow-tags
+   ```
+
+   Le script met à jour le numéro (API et front), date le journal, crée le commit « Version X.Y.Z » et
+   l'étiquette git `vX.Y.Z`. Rien ne part sur GitHub avant le `git push`.
+3. GitHub crée alors la page de la version (*Release*) avec ses notes : dépôt → **Releases**.
+
+Le numéro en service s'affiche en pied de page de l'application et dans `…/api/health`.
+
+### Récupérer une version donnée
+
+- **Télécharger** : dépôt GitHub → **Releases** → la version → *Source code (zip)*. Lien direct :
+  `https://github.com/<compte>/chantier-volontaires/archive/refs/tags/v1.2.0.zip`.
+- **Avec git** : `git clone --branch v1.2.0 https://github.com/<compte>/chantier-volontaires.git`, ou dans
+  une copie existante `git fetch --tags && git checkout v1.2.0` (retour au présent : `git checkout main`).
+- **Lister les versions** : `git tag --list 'v*' --sort=-v:refname`.
+- **Remettre une version en service** : Dokploy → Deployments et Cloudflare Pages → Déploiements,
+  redéployer le commit « Version X.Y.Z ». ⚠️ Même réserve que ci-dessus pour les migrations de base.
+
 ## 7. Sauvegardes et restauration
 
 **À configurer avant l'ouverture des inscriptions.**

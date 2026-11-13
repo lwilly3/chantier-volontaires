@@ -632,3 +632,58 @@ a.badge { text-decoration: none; }
 .impact-dates { border: 2px solid var(--niv-presque); border-radius: 12px; padding: 0.8rem 1rem; background: color-mix(in srgb, var(--niv-presque) 8%, var(--surface)); }
 .impact-dates p { margin: 0 0 0.4rem; }
 .impact-dates ul { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+
+/* Grille compétences × jours */
+.grille-comp { --gc-col: 12.5rem; overflow-x: auto; padding-bottom: 0.9rem; }
+.grille-comp table { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; }
+.grille-comp th, .grille-comp td { padding: 0; font-size: 0.8rem; }
+.grille-comp tbody th, .grille-comp .gc-coin {
+  position: sticky; left: 0; z-index: 1; background: var(--surface);
+  /* masque l'espacement du tableau à gauche de la colonne figée, où les cases défilées transparaissaient */
+  box-shadow: -4px 0 0 var(--surface);
+  text-align: left; font-weight: 600; white-space: nowrap; padding-right: 0.6rem;
+  box-sizing: border-box; width: var(--gc-col); min-width: var(--gc-col); max-width: var(--gc-col);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.grille-comp .gc-coin { vertical-align: bottom; font-size: 0.72rem; color: var(--texte-2); text-transform: uppercase; }
+.grille-comp .hors-liste { font-style: italic; color: var(--texte-2); }
+.gc-mois { text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--texte-2); text-transform: uppercase; white-space: nowrap; }
+.gc-mois span { position: sticky; left: calc(var(--gc-col) + 4px); }
+.gc-jour button {
+  display: grid; justify-items: center; width: 100%; min-width: 30px; padding: 0.15rem 0;
+  border: 2px solid transparent; border-radius: 6px; background: none; color: var(--texte);
+  font: inherit; font-weight: 700; cursor: pointer; line-height: 1.15;
+}
+.gc-jour small { font-size: 0.62rem; font-weight: 600; color: var(--texte-2); }
+.gc-jour.sel button { border-color: var(--texte); }
+.grille-comp td {
+  min-width: 30px; height: 30px; text-align: center; border-radius: 6px; cursor: pointer;
+  font-weight: 700; color: var(--texte); border: 2px solid transparent;
+}
+.grille-comp td.fonce { color: var(--primaire-texte); }
+.grille-comp td.gc-zero, .niv.gc-zero {
+  background: color-mix(in srgb, var(--danger) 13%, var(--surface));
+  color: var(--danger);
+}
+.grille-comp td.sel { border-color: var(--texte); }
+.grille-comp td.passe, .gc-jour.passe { opacity: 0.55; }
+.niv.gc-leg-peu { background: color-mix(in srgb, var(--primaire) 18%, var(--surface)); }
+.niv.gc-leg-beaucoup { background: color-mix(in srgb, var(--primaire) 90%, var(--surface)); color: var(--primaire-texte); }
+@media (max-width: 640px) {
+  .grille-comp { --gc-col: 7.5rem; }
+  .grille-comp tbody th, .grille-comp .gc-coin { font-size: 0.74rem; }
+}
+.gc-actions { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.6rem; }
+.gc-actions .aide { margin: 0; }
+.gc-periode label { display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.88rem; color: var(--texte-2); }
+.gc-periode select { width: auto; min-width: 0; padding: 0.3rem 0.5rem; }
+.grille-comp tbody th button {
+  display: block; width: 100%; padding: 0.25rem 0.4rem; margin-left: -0.4rem; border: 0; border-radius: 6px;
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.grille-comp tbody th button:hover { background: color-mix(in srgb, var(--primaire) 12%, var(--surface)); }
+.grille-comp tr.active th button { background: var(--primaire); color: var(--primaire-texte); }
+.grille-comp tr.attenuee td, .grille-comp tr.attenuee th button { opacity: 0.3; }
+.grille-comp tbody th, .grille-comp .gc-coin { padding-left: 0.4rem; }
+.gc-reset { border: 0; padding: 0; background: none; color: var(--primaire); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
