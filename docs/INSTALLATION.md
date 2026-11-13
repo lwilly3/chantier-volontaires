@@ -329,6 +329,8 @@ numéro (`v1.2.0`), pour pouvoir le retrouver et le télécharger plus tard.
    Le script met à jour le numéro (API et front), date le journal, crée le commit « Version X.Y.Z » et
    l'étiquette git `vX.Y.Z`. Rien ne part sur GitHub avant le `git push`.
 3. GitHub crée alors la page de la version (*Release*) avec ses notes : dépôt → **Releases**.
+   Si elle n'apparaît pas après quelques minutes : dépôt → **Actions → Version → Run workflow**, en
+   indiquant l'étiquette (`v1.2.0`).
 
 Le numéro en service s'affiche en pied de page de l'application et dans `…/api/health`.
 
