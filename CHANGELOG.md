@@ -13,6 +13,8 @@ Pour publier une version : [docs/INSTALLATION.md § 6](docs/INSTALLATION.md#6-me
 
 ## Non publié
 
+## [1.1.1] — 2026-11-16
+
 - **Formulaire** : la légende des pastilles de la grille des jours affiche les vraies plages de
   chaque couleur, calculées d'après le plafond et le seuil d'alerte des réglages (au lieu d'exemples
   fixes qui ne correspondaient pas aux couleurs).
