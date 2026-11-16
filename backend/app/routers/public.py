@@ -91,6 +91,7 @@ def config(
         "date_debut": p.date_debut,
         "date_fin": p.date_fin,
         "plafond_jour": p.plafond_jour,
+        "seuil_alerte": p.seuil_alerte,
         "inscriptions_ouvertes": p.inscriptions_ouvertes,
         "message_accueil": p.message_accueil,
         "lien_communaute": p.lien_communaute,

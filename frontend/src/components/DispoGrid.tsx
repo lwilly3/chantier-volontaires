@@ -17,11 +17,13 @@ interface Props {
   onChange: (d: Dispo[]) => void;
   remplissage?: Record<string, { total: number; statut: StatutJour }>;
   plafond?: number;
+  /** Seuil à partir duquel un jour est « presque plein » (à défaut : le plafond). */
+  seuil?: number;
   /** Jours antérieurs à cette date (AAAA-MM-JJ) : affichés mais non modifiables. */
   figeAvant?: string | null;
 }
 
-export default function DispoGrid({ jours, valeur, onChange, remplissage, plafond, figeAvant }: Props) {
+export default function DispoGrid({ jours, valeur, onChange, remplissage, plafond, seuil, figeAvant }: Props) {
   const fige = (jour: string) => !!figeAvant && jour < figeAvant;
   const carte = useMemo(() => new Map(valeur.map((d) => [d.jour, d.creneau])), [valeur]);
   const grille = useMemo(() => semaines(jours), [jours]);
@@ -70,7 +72,7 @@ export default function DispoGrid({ jours, valeur, onChange, remplissage, plafon
 
   return (
     <div className="dispo">
-      <ModeEmploi avecRemplissage={Boolean(remplissage && plafond)} plafond={plafond} avecFige={Boolean(figeAvant)} />
+      <ModeEmploi avecRemplissage={Boolean(remplissage && plafond)} plafond={plafond} seuil={seuil} avecFige={Boolean(figeAvant)} />
 
       <div className="raccourcis" role="group" aria-label="Raccourcis">
         {ENTETES_SEMAINE.map((nom, i) => {
@@ -185,7 +187,14 @@ function retourChoix(jour: string, creneau: Creneau | null) {
 
 const CLE_GUIDE = "volontaires.guideGrilleFerme";
 
-function ModeEmploi({ avecRemplissage, plafond, avecFige }: { avecRemplissage: boolean; plafond?: number; avecFige: boolean }) {
+/** « 0–24 », ou « 7 » quand la plage ne contient qu'un nombre. */
+const plage = (de: number, a: number) => (de === a ? `${de}` : `${de}–${a}`);
+
+function ModeEmploi({ avecRemplissage, plafond = 0, seuil, avecFige }: { avecRemplissage: boolean; plafond?: number; seuil?: number; avecFige: boolean }) {
+  // Mêmes règles que les pastilles de la grille : jaune sous la moitié du plafond, orange dès le seuil d'alerte
+  const alerte = Math.min(seuil ?? plafond, plafond);
+  const moitie = Math.ceil(plafond / 2);
+  const finPeu = Math.min(moitie, alerte) - 1;
   const [ouvert, setOuvert] = useState(() => {
     try {
       return localStorage.getItem(CLE_GUIDE) !== "1";
@@ -246,15 +255,21 @@ function ModeEmploi({ avecRemplissage, plafond, avecFige }: { avecRemplissage: b
         <>
           <p>La pastille sous la date indique combien de volontaires sont déjà prévus ce jour-là (maximum {plafond}) :</p>
           <ul className="guide-pastilles">
-            <li>
-              <span className="charge vide">0</span> personne encore : on a besoin de toi
-            </li>
-            <li>
-              <span className="charge">12</span> ça se remplit
-            </li>
-            <li>
-              <span className="charge presque">46</span> presque plein
-            </li>
+            {finPeu >= 0 && (
+              <li>
+                <span className="charge vide">{plage(0, finPeu)}</span> encore peu de monde : on a besoin de toi
+              </li>
+            )}
+            {moitie < alerte && (
+              <li>
+                <span className="charge">{plage(moitie, alerte - 1)}</span> ça se remplit
+              </li>
+            )}
+            {alerte < plafond && (
+              <li>
+                <span className="charge presque">{plage(alerte, plafond - 1)}</span> presque plein
+              </li>
+            )}
             <li>
               <span className="charge complet">plein</span> tu seras en réserve, appelé en cas de désistement
             </li>

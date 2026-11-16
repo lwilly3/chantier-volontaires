@@ -46,6 +46,7 @@ export interface ConfigPublique {
   date_debut: string;
   date_fin: string;
   plafond_jour: number;
+  seuil_alerte: number;
   inscriptions_ouvertes: boolean;
   message_accueil: string;
   competences: string[];

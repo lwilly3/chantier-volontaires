@@ -109,6 +109,7 @@ export default function FicheVolontaire() {
             onChange={(d) => setForm({ ...form, disponibilites: d })}
             remplissage={config.remplissage}
             plafond={config.plafond_jour}
+            seuil={config.seuil_alerte}
           />
         </section>
         <div className="barre-envoi">

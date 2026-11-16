@@ -13,6 +13,10 @@ Pour publier une version : [docs/INSTALLATION.md § 6](docs/INSTALLATION.md#6-me
 
 ## Non publié
 
+- **Formulaire** : la légende des pastilles de la grille des jours affiche les vraies plages de
+  chaque couleur, calculées d'après le plafond et le seuil d'alerte des réglages (au lieu d'exemples
+  fixes qui ne correspondaient pas aux couleurs).
+
 ## [1.1.0] — 2026-11-14
 
 - **Export en image** : les images du calendrier et de la grille des compétences rappellent l'état des

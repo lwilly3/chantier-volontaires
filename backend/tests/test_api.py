@@ -57,6 +57,7 @@ def test_config_publique(client):
     assert r.status_code == 200
     data = r.json()
     assert data["plafond_jour"] == 50
+    assert data["seuil_alerte"] == 45
     assert "2026-11-29" not in data["jours"]  # dimanche exclu
     assert "2026-12-25" not in data["jours"]  # jour fermé
     assert data["jours"][0] == "2026-11-23"
